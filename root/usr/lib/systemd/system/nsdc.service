@@ -1,0 +1,18 @@
+[Unit]
+Description=NethServer Domain Controller container
+Documentation=man:systemd-nspawn(1)
+PartOf=machines.target
+Before=machines.target
+
+[Service]
+EnvironmentFile=/etc/sysconfig/nsdc
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-bridge=${BRIDGE} --machine=nsdc
+KillMode=mixed
+Type=notify
+RestartForceExitStatus=133
+SuccessExitStatus=133
+Slice=machine.slice
+Delegate=yes
+
+[Install]
+WantedBy=machines.target
