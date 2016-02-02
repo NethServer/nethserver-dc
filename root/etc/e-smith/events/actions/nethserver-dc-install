@@ -22,9 +22,10 @@
 
 nsroot=/var/lib/machines/nsdc
 
-if ! [ -d ${nsroot} ]; then
+if ! [ -d ${nsroot}/etc/yum/vars ]; then
     mkdir -p ${nsroot}/etc/yum/vars
     mkdir -p ${nsroot}/var/log/journal
+    mkdir -p ${nsroot}/etc/systemd/network
     cp -vf /etc/yum/vars/distroversion ${nsroot}/etc/yum/vars/distroversion
     yum -y --releasever=7 --installroot=${nsroot} install ns-samba centos-release systemd-networkd
     systemctl enable machines.target

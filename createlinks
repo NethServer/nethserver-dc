@@ -24,6 +24,7 @@ use strict;
 use esmith::Build::CreateLinks  qw(:all);
 
 event_actions('nethserver-dc-update', qw(
+   initialize-default-databases 00
    nethserver-dc-install 20
 ));
 
