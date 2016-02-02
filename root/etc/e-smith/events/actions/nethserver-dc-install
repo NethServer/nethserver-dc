@@ -25,7 +25,7 @@ nsroot=/var/lib/machines/nsdc
 if ! [ -d ${nsroot} ]; then
     mkdir -p ${nsroot}/etc/yum/vars
     cp -vf /etc/yum/vars/distroversion ${nsroot}/etc/yum/vars/distroversion
-    yum --nogpg -y --releasever=7 --installroot=${nsroot} install ns-samba centos-release 
+    yum -y --releasever=7 --installroot=${nsroot} install ns-samba centos-release systemd-networkd
     systemctl enable machines.target
 fi
 

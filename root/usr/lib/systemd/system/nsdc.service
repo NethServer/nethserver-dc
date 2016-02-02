@@ -5,8 +5,10 @@ PartOf=machines.target
 Before=machines.target
 
 [Service]
-EnvironmentFile=/etc/sysconfig/nsdc
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-bridge=${BRIDGE} --machine=nsdc
+Environment=OPTIONS=
+Environment=BRIDGE=brdef
+EnvironmentFile=-/etc/sysconfig/nsdc
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --network-bridge=${BRIDGE} --machine=nsdc ${OPTIONS}
 KillMode=mixed
 Type=notify
 RestartForceExitStatus=133

@@ -1,1 +1,6 @@
-BRIDGE=brdef
+# bind the container to this bridge device
+# BRIDGE=brdef
+
+# other options to systemd-nspawn
+# OPTIONS=
+

@@ -24,6 +24,15 @@ use strict;
 use esmith::Build::CreateLinks  qw(:all);
 
 event_actions('nethserver-dc-update', qw(
-   nethserver-dc-conf 20
+   nethserver-dc-install 20
 ));
 
+event_templates('nethserver-dc-save', qw(
+   /var/lib/machines/nsdc/etc/systemd/network/green.network
+   /var/lib/machines/nsdc/etc/hostname
+   /var/lib/machines/nsdc/etc/hosts
+));
+
+event_services('nethserver-dc-save', qw(
+   nsdc restart
+));

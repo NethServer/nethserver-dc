@@ -1,0 +1,19 @@
+[Match]
+Virtualization=yes
+Name=host0
+
+[Network]
+DNS={$nsdc{'IpAddress'}}
+Address={use esmith::util; esmith::util::computeLocalNetworkShortSpec($nsdc{'IpAddress'}, $nsdc{'IpMask'})}
+
+{
+    use esmith::NetworksDB;
+    my $ndb = esmith::NetworksDB->open_ro(); 
+    $gateway = map { $_->prop('role') eq 'green' && defined $_->prop('gateway') ? $_->prop('gateway') : () } $ndb->bridges);
+    if($gateway) {
+        $OUT = "[Route]\n";
+        $OUT .= "Gateway=$gateway\n";
+    }
+}
+
+
