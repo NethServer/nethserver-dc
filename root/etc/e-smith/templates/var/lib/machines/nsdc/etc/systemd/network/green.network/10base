@@ -3,16 +3,15 @@ Virtualization=yes
 Name=host0
 
 [Network]
-DNS={$nsdc{'IpAddress'}}
-Address={use esmith::util; esmith::util::computeLocalNetworkShortSpec($nsdc{'IpAddress'}, $nsdc{'IpMask'})}
+Address={use Net::IPv4Addr; $OUT=$nsdc{'IpAddress'} . '/' . Net::IPv4Addr::ipv4_msk2cidr($nsdc{'IpMask'});}
 
 {
     use esmith::NetworksDB;
     my $ndb = esmith::NetworksDB->open_ro(); 
-    $gateway = map { $_->prop('role') eq 'green' && defined $_->prop('gateway') ? $_->prop('gateway') : () } $ndb->bridges);
-    if($gateway) {
+    @gateway = map { ($_->prop('role') eq 'green' && defined $_->prop('gateway')) ? $_->prop('gateway') : () } $ndb->bridges;
+    if($gateway[0]) {
         $OUT = "[Route]\n";
-        $OUT .= "Gateway=$gateway\n";
+        $OUT .= "Gateway=$gateway[0]\n";
     }
 }
 

@@ -31,6 +31,8 @@ event_templates('nethserver-dc-save', qw(
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
    /var/lib/machines/nsdc/etc/hosts
+   /var/lib/machines/nsdc/etc/resolv.conf
+   /var/lib/machines/nsdc/etc/sysconfig/samba-provision
 ));
 
 event_services('nethserver-dc-save', qw(

@@ -1,0 +1,18 @@
+[Unit]
+Description=Domain controller provisioning
+Before=samba.service
+ConditionPathExists=!/etc/samba/smb.conf
+ConditionPathExists=!/var/lib/samba/private/krb5.conf
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+Environment=OPTIONS=--server-role=dc
+Environment=DOMAIN=mycompany
+Environment=REALM=mycompany.local
+Environment=ADMINPASS=Nethesis,1234
+EnvironmentFile=-/etc/sysconfig/samba-provision
+ExecStart=/usr/bin/samba-tool domain provision --domain=${DOMAIN} --realm=${REALM} --adminpass=${ADMINPASS} ${OPTIONS} ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
+
+[Install]
+WantedBy=samba.service

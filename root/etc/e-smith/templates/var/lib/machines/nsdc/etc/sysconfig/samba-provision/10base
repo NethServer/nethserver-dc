@@ -1,0 +1,10 @@
+
+# DOMAIN=mycompany
+DOMAIN={uc($nsdc{'Domain'})}
+
+# REALM=mycompany.local
+REALM={lc($nsdc{'Realm'})}
+
+# ADMINPASS=Nethesis,1234
+# OPTIONS=--server-role=dc
+
