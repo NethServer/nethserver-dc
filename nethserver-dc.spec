@@ -2,11 +2,11 @@ Name:           nethserver-dc
 Version:        0.0.0
 Release:        1%{?dist}
 Summary:        NethServer Domain Controller configuration
-BuildArch:      noarch
 
 License:        GPLv3+
 URL: %{url_prefix}/%{name}
 Source0:        %{name}-%{version}.tar.gz
+Source1:        ns-samba-0.0.0-1.ns7.x86_64.rpm
 
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
@@ -28,6 +28,8 @@ perl createlinks
 
 %install
 rm -rf %{buildroot}
+mkdir -p root/usr/lib/nethserver-dc
+mv %{SOURCE1} root/usr/lib/nethserver-dc
 (cd root   ; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} %{buildroot} | \
   sed '\:/etc/sysconfig/nsdc: d' > %{name}-%{version}-filelist
