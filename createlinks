@@ -29,6 +29,7 @@ event_actions('nethserver-dc-update', qw(
 ));
 
 event_templates('nethserver-dc-save', qw(
+   /etc/dnsmasq.conf
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
    /var/lib/machines/nsdc/etc/hosts
@@ -38,4 +39,5 @@ event_templates('nethserver-dc-save', qw(
 
 event_services('nethserver-dc-save', qw(
    nsdc restart
+   dnsmasq restart
 ));
