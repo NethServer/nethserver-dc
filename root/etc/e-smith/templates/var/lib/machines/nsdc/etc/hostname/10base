@@ -1,1 +1,1 @@
-nsdc-{$SystemName}.{lc($nsdc{'Realm'})}
+nsdc-{$SystemName}.{lc($nsdc{'Realm'} || $DomainName)}

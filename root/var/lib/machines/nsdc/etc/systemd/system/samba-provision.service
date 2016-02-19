@@ -11,8 +11,9 @@ Environment=OPTIONS=--server-role=dc
 Environment=DOMAIN=mycompany
 Environment=REALM=mycompany.local
 Environment=ADMINPASS=Nethesis,1234
+Environment=FWDNS=8.8.4.4
 EnvironmentFile=-/etc/sysconfig/samba-provision
-ExecStart=/usr/bin/samba-tool domain provision --domain=${DOMAIN} --realm=${REALM} --adminpass=${ADMINPASS} ${OPTIONS} ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
+ExecStart=/usr/bin/samba-tool domain provision --option="dns forwarder=${FWDNS}" --domain="${DOMAIN}" --realm="${REALM}" --adminpass="${ADMINPASS}" ${OPTIONS} ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
 
 [Install]
-WantedBy=samba.service
+WantedBy=multi-user.target

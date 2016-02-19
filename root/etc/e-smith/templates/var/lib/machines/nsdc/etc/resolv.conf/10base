@@ -1,2 +1,2 @@
-domain {lc($nsdc{'Realm'})}
+domain {lc($nsdc{'Realm'} || $DomainName)}
 nameserver {$nsdc{'IpAddress'}}

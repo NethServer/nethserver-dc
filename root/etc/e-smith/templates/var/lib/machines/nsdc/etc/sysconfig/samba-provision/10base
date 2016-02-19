@@ -1,10 +1,9 @@
-
-# DOMAIN=mycompany
-DOMAIN={uc($nsdc{'Domain'})}
-
-# REALM=mycompany.local
-REALM={lc($nsdc{'Realm'})}
-
+DOMAIN={uc($nsdc{'Domain'}) || uc((split(/\./, $DomainName))[0])}
+REALM={lc($nsdc{'Realm'}) || lc($DomainName)}
+FWDNS={
+    my @servers = split(/,/, $dns{'NameServers'});
+    $OUT = $servers[0] || '8.8.4.4';
+}
 # ADMINPASS=Nethesis,1234
 # OPTIONS=--server-role=dc
 
