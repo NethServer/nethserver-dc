@@ -3,6 +3,7 @@ Description=NethServer Domain Controller container
 Documentation=man:systemd-nspawn(1)
 PartOf=machines.target
 Before=machines.target
+Before=sssd.service
 After=network.service
 Wants=network.service
 
