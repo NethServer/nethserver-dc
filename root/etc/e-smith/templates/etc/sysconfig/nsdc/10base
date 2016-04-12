@@ -1,0 +1,14 @@
+# bind the container to this bridge device
+{
+    use esmith::NetworksDB;
+    my $ndb = esmith::NetworksDB->open_ro();
+    my $bridge = "br0";
+    foreach ($ndb->green()) {
+        my $type = $_->prop('type') || 'ethernet';
+        if ($type eq 'bridge') {
+            $bridge = $_->key;
+            last;
+        }
+    }
+    $OUT .= "BRIDGE=$bridge\n";
+}

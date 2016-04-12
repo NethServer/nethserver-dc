@@ -35,6 +35,7 @@ event_templates('nethserver-dc-save', qw(
    /var/lib/machines/nsdc/etc/hosts
    /var/lib/machines/nsdc/etc/resolv.conf
    /var/lib/machines/nsdc/etc/sysconfig/samba-provision
+   /etc/sysconfig/nsdc
 ));
 
 event_services('nethserver-dc-save', qw(

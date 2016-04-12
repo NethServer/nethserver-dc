@@ -32,7 +32,7 @@ mkdir -p root/usr/lib/nethserver-dc
 mv %{SOURCE1} root/usr/lib/nethserver-dc
 (cd root   ; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} %{buildroot} | \
-  sed '\:/etc/sysconfig/nsdc: d' > %{name}-%{version}-filelist
+  sed '\:^/etc/sysconfig/nsdc: d' > %{name}-%{version}-filelist
 
 %post
 %systemd_post nsdc.service
