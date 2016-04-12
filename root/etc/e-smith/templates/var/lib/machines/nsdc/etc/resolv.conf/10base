@@ -1,2 +1,2 @@
-domain {lc($nsdc{'Realm'} || $DomainName)}
+domain {lc($DomainName)}
 nameserver 127.0.0.1
