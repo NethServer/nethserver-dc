@@ -1,0 +1,8 @@
+/var/lib/machines/nsdc/var/lib/samba/**.ldb
+/var/lib/machines/nsdc/var/lib/samba/**.tdb
+/var/lib/machines/nsdc/var/lib/samba/private/msg.sock
+/var/lib/machines/nsdc/var/lib/samba/private/ldap_priv
+/var/lib/machines/nsdc/var/lib/samba/private/ldapi
+/var/lib/machines/nsdc/var/lib/samba/ntp_signd
+/var/lib/machines/nsdc/var/lib/samba/winbindd_privileged
+/var/lib/machines/nsdc/var/lib/samba/winbindd_cache.tdb.bak

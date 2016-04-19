@@ -42,3 +42,9 @@ event_services('nethserver-dc-save', qw(
    nsdc restart
    dnsmasq restart
 ));
+
+#backup
+event_link("nethserver-dc-pre-backup" , "pre-backup-config", "40");
+event_link("nethserver-dc-post-backup", "post-backup-config", "40");
+event_link("nethserver-dc-pre-restore", "pre-restore-config", "40");
+event_link("nethserver-dc-post-restore", "post-restore-config", "40");
