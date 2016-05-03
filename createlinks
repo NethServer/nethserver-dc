@@ -26,6 +26,11 @@ use esmith::Build::CreateLinks  qw(:all);
 event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
    nethserver-dc-install 20
+   nethserver-dc-password-policy       50
+));
+
+event_actions('nethserver-dc-save', qw(
+   nethserver-dc-password-policy       50
 ));
 
 event_templates('nethserver-dc-save', qw(
@@ -66,3 +71,7 @@ event_actions('user-lock', qw(
 event_actions('user-unlock', qw(
               nethserver-dc-user-unlock 15
 ));
+
+# Update user settings when password policy changes:
+event_actions('password-policy-update',
+              'nethserver-dc-password-policy' => '30');
