@@ -22,16 +22,8 @@
 
 use strict;
 use Errno;
-use esmith::db;
 use File::Path;
-use NethServer::Database::Passwd;
-use NethServer::SSSD;
-use esmith::ConfigDB;
 
-my $conf = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $sssd = new NethServer::SSSD();
-
-my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
 my $homeDirPrefix = '/var/lib/nethserver/home/';
 
 my $event = shift;
