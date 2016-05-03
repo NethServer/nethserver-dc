@@ -75,3 +75,12 @@ event_actions('user-unlock', qw(
 # Update user settings when password policy changes:
 event_actions('password-policy-update',
               'nethserver-dc-password-policy' => '30');
+
+#--------------------------------------------------
+# password-modify event
+#--------------------------------------------------
+event_actions('password-modify', qw(
+              nethserver-dc-password-set 30
+              nethserver-dc-user-unlock 40
+));
+
