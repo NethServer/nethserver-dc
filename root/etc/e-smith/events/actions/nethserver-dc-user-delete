@@ -41,6 +41,9 @@ if(! defined ($userName)) {
     die "Username argument missing\n";
 }
 
+#accept user@domain format
+$userName =~ s/@.*//;
+
 #Delete user
 my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user delete "$userName"` ;
 

@@ -48,6 +48,9 @@ if( ! -x $shell) {
     $shell = '/bin/false';
 }
 
+#accept user@domain format
+$userName =~ s/@.*//;
+
 #Modify user FullName
 my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -u "$userName" --fullname="$FullName"` ;
 

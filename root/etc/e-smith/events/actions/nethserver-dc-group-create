@@ -41,6 +41,9 @@ if(! defined ($groupName)) {
     die "Group name argument missing\n";
 }
 
+#accept group@domain format
+$groupName =~ s/@.*//;
+
 #Create group 
 my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group add "$groupName"`;
 

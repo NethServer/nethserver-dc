@@ -52,6 +52,9 @@ my @FullName = split / /, $FullName;
 my $Name = shift @FullName;
 my $Surname = join(' ',@FullName);
 
+#accept user@domain format
+$userName =~ s/@.*//;
+
 #Create user
 my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$Name" --surname=$Surname` ;
 
