@@ -51,3 +51,18 @@ event_link("nethserver-dc-post-restore", "post-restore-config", "40");
 
 #user create
 event_link("nethserver-dc-user-create", "user-create", "40");
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+event_actions('user-lock', qw(
+              nethserver-dc-user-lock 15
+));
+
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+event_actions('user-unlock', qw(
+              nethserver-dc-user-unlock 15
+));
