@@ -48,7 +48,7 @@ my $Surname = join(' ',@FullName);
 $userName =~ s/@.*//;
 
 #Create user
-my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$Name" --surname=$Surname` ;
+my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$Name" --surname=$Surname` ;
 
 $out =~ s/^\s+|\s+$|\s+\n+$//g; 
 
