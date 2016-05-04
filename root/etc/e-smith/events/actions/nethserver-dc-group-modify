@@ -1,0 +1,72 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use Errno;
+
+my $event = shift || die "Event name argument is missing\n";
+my $groupName = shift || die "Group name argument is missing\n";
+
+#accept group@domain format
+$groupName =~ s/@.*//;
+
+my @newmembers = @ARGV;
+
+#get group users
+my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "$groupName"`;
+
+my @oldmembers = split (" ",$out);
+my @membersToAdd = ();
+my @membersToRemove = ();
+my $membersUnchanged = '';
+
+#make list of member to add to group
+foreach my $element (@newmembers) { 
+    if ( $element ~~ @oldmembers ){
+        $membersUnchanged = $membersUnchanged." ".$element;
+    } else {
+        push (@membersToAdd ,$element);
+    }
+}
+
+#make list of member to remove from group
+foreach my $element (@oldmembers) {
+    if ( $element ~~ @newmembers) {
+        $membersUnchanged = $membersUnchanged." ".$element;
+    } else {
+        push (@membersToRemove,$element);
+    }
+}
+
+#remove members
+if (@membersToRemove){
+    my $membersToRemove = join (",", @membersToRemove);
+    my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "$groupName" "$membersToRemove"`;
+    print $out;
+}
+
+#add members
+if (@membersToAdd){
+    my $membersToAdd = join (",", @membersToAdd);
+    my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$membersToAdd"`;
+    print $out;
+}
