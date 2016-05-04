@@ -26,6 +26,11 @@ use esmith::Build::CreateLinks  qw(:all);
 event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
    nethserver-dc-install 20
+   nethserver-dc-password-policy       50
+));
+
+event_actions('nethserver-dc-save', qw(
+   nethserver-dc-password-policy       50
 ));
 
 event_templates('nethserver-dc-save', qw(
@@ -48,3 +53,62 @@ event_link("nethserver-dc-pre-backup" , "pre-backup-config", "40");
 event_link("nethserver-dc-post-backup", "post-backup-config", "40");
 event_link("nethserver-dc-pre-restore", "pre-restore-config", "40");
 event_link("nethserver-dc-post-restore", "post-restore-config", "40");
+
+#--------------------------------------------------
+# actions for user-create
+#--------------------------------------------------
+event_link("nethserver-dc-user-create", "user-create", "40");
+
+#--------------------------------------------------
+# actions for user-delete
+#--------------------------------------------------
+event_link("nethserver-dc-user-delete", "user-delete", "40");
+
+#--------------------------------------------------
+# actions for user-modify
+#--------------------------------------------------
+event_link("nethserver-dc-user-modify", "user-modify", "40");
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+event_actions('user-lock', qw(
+              nethserver-dc-user-lock 15
+));
+
+
+#--------------------------------------------------
+# actions for user-lock event
+#--------------------------------------------------
+event_actions('user-unlock', qw(
+              nethserver-dc-user-unlock 15
+));
+
+# Update user settings when password policy changes:
+event_actions('password-policy-update',
+              'nethserver-dc-password-policy' => '30');
+
+#--------------------------------------------------
+# password-modify event
+#--------------------------------------------------
+event_actions('password-modify', qw(
+              nethserver-dc-password-set 30
+              nethserver-dc-user-unlock 40
+));
+
+#--------------------------------------------------
+# actions for group-create
+#--------------------------------------------------
+event_link("nethserver-dc-group-create", "group-create", "40");
+
+#--------------------------------------------------
+# actions for group-delete
+#--------------------------------------------------
+event_link("nethserver-dc-group-delete", "group-delete", "40");
+
+#--------------------------------------------------
+# actions for group-modify
+#--------------------------------------------------
+event_link("nethserver-dc-group-modify", "group-modify", "40");
+
+

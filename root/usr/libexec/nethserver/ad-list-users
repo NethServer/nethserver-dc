@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+use strict;
+use JSON;
+use esmith::db;
+use esmith::ConfigDB;
+
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $passwd = esmith::db->open("NethServer::Database::Passwd") || die("Could not open Passwd DB");
+my %users;
+
+# Handle users with and without domain part
+my $domain = $db->get_value('DomainName');
+my $age = 9999999999;
+my $passexpire = $db->get_prop('passwordstrength', 'PassExpires') || 'yes';
+if ($passexpire eq 'yes') {
+    $age = $db->get_prop('passwordstrength', 'MaxPassAge');
+}
+my $now = time();
+
+# Check if the user is really unlocked
+my @out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -L -w`;
+foreach (@out) {
+    my ($user,$uid,$lan_hash,$nt_hash,$flags,$lct) = split(/:/);
+    if ($flags =~ /U/ && $passwd->get($user.'@'.$domain)) { # this is a user
+        my $locked = 0;
+        my $expired = 0;
+
+        if ($flags =~ /D/) { # user is disabled
+            $locked = 1;
+        }
+
+        my $tmp = (split(/LCT-/,$lct))[1];
+        my $expire_date = hex($tmp) + (int($age) * 24 * 60 * 60);
+        if  ($expire_date  < $now) { # password is expired
+            $expired = 1;
+        }
+        $users{$user.'@'.$domain}{'locked'} = $locked;
+        $users{$user.'@'.$domain}{'expired'} = $expired;
+    }
+}
+
+print to_json(\%users);
+
+exit 0;
