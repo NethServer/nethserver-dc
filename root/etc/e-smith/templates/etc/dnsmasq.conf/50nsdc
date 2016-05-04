@@ -1,7 +1,0 @@
-#
-# 50nsdc -- the Samba Domain controller is
-# the authoritative DNS for our realm/domain
-#
-server=/{lc($DomainName)}/{$nsdc{'IpAddress'} || '127.0.0.1'}
-
-
