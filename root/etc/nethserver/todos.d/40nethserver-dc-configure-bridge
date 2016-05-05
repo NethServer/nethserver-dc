@@ -1,0 +1,52 @@
+#!/usr/bin/python
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+import gettext
+import json
+import sys
+import re
+import subprocess
+
+try:
+    p = subprocess.Popen(['/sbin/e-smith/db', 'networks', 'showjson'], stdout=subprocess.PIPE)
+    jNetworks, err = p.communicate()
+except:	
+    exit(1)
+
+networks=json.loads(jNetworks)
+green_bridge=0;
+for key in networks:
+    if key['type'] == 'bridge':
+        if key['props']['role'] == 'green':
+            green_bridge=green_bridge+1
+
+if(green_bridge == 0):
+    gettext.textdomain('nethserver-dc')
+    msg = {
+        "action": {
+            "label": gettext.gettext('Configure Samba 4 bridge'),
+            "url": '/NetworkAdapter'
+        },
+        "text": gettext.gettext('Configure a bridge on green network for Samba 4 Domin Controller virtual machine'),
+        "icon": "edit"
+    }
+    json.dump(msg, sys.stdout)

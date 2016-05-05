@@ -48,6 +48,8 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %doc COPYING
 %dir %{_nseventsdir}/%{name}-update
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
+%attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc-configure-bridge
+%attr(0755,root,root) /etc/nethserver/todos.d/45nethserver-dc-set-ip
 
 %changelog
 * Fri Jan 29 2016 Davide Principi <davide.principi@nethesis.it>
