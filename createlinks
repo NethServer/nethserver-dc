@@ -111,3 +111,6 @@ event_link("nethserver-dc-group-delete", "group-delete", "40");
 event_link("nethserver-dc-group-modify", "group-modify", "40");
 
 
+validator_actions('dcipaddr', qw(
+    ipgreenandbridged 20
+));

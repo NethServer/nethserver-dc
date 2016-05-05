@@ -31,7 +31,7 @@ class DomainController extends \Nethgui\Controller\AbstractController
     public function initialize()
     {
         parent::initialize();
-        $this->declareParameter('IpAddress',Validate::SERVICESTATUS, array('configuration', 'nsdc', 'IpAddress')); 
+        $this->declareParameter('IpAddress', $this->createValidator(Validate::IPv4)->platform('dcipaddr'), array('configuration', 'nsdc', 'IpAddress'));
     }
 
     protected function onParametersSaved($changes)
