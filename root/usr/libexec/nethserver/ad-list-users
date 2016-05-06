@@ -39,7 +39,28 @@ if ($passexpire eq 'yes') {
 my $now = time();
 
 # Check if the user is really unlocked
-my @out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -L -w`;
+my @out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -Lv`;
+
+my $user = '';
+foreach (@out) {
+    if($_ =~ /---------------/) {
+        $user = '';
+        next;
+    }
+    my ($k,$v) = split(/:/);
+    $v =~ s/^\s+//g;
+    $v =~ s/\s+$//g;
+
+    if ($k =~ /Full Name/) {
+        $users{$user}{'gecos'} = $v;
+    }
+    if ($k =~ /Unix username/) {
+        $user = lc($v).'@'.$domain;
+    }
+}
+
+@out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -Lw`;
+
 foreach (@out) {
     my ($user,$uid,$lan_hash,$nt_hash,$flags,$lct) = split(/:/);
     $user = lc($user);
@@ -63,6 +84,8 @@ foreach (@out) {
         $users{$user.'@'.$domain}{'locked'} = $locked;
         $users{$user.'@'.$domain}{'expired'} = $expired;
         $users{$user.'@'.$domain}{'new'} = $new;
+    } else {
+        delete($users{$user.'@'.$domain});
     }
 }
 
