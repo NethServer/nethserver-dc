@@ -29,7 +29,7 @@ import subprocess
 try:
     p = subprocess.Popen(['/sbin/e-smith/db', 'networks', 'showjson'], stdout=subprocess.PIPE)
     jNetworks, err = p.communicate()
-except:	
+except:
     exit(1)
 
 networks=json.loads(jNetworks)
@@ -46,7 +46,7 @@ if(green_bridge == 0):
             "label": gettext.gettext('Configure Samba 4 bridge'),
             "url": '/NetworkAdapter'
         },
-        "text": gettext.gettext('Configure a bridge on green network for Samba 4 Domin Controller virtual machine'),
+        "text": gettext.gettext('Configure a bridge on green network for Samba 4 Domain Controller virtual machine'),
         "icon": "edit"
     }
     json.dump(msg, sys.stdout)

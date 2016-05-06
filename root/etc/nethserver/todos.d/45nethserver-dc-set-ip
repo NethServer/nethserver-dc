@@ -29,7 +29,7 @@ import subprocess
 try:
     p = subprocess.Popen(['/sbin/e-smith/config', 'getprop', 'nsdc', 'IpAddress'], stdout=subprocess.PIPE)
     ip, err = p.communicate()
-except:	
+except:
     exit(1)
 
 if(ip.rstrip() == ''):
@@ -39,7 +39,7 @@ if(ip.rstrip() == ''):
             "label": gettext.gettext('Configure Samba 4 IP'),
             "url": '/DomainController'
         },
-        "text": gettext.gettext('Configure an IP address for Samba 4 Domin Controller virtual machine'),
+        "text": gettext.gettext('Configure an IP address for Samba 4 Domain Controller virtual machine'),
         "icon": "edit"
     }
     json.dump(msg, sys.stdout)
