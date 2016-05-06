@@ -39,17 +39,43 @@ if ($passexpire eq 'yes') {
 my $now = time();
 
 # Check if the user is really unlocked
-my @out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -L -w`;
+my @out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -Lv`;
+
+my $user = '';
+foreach (@out) {
+    if($_ =~ /---------------/) {
+        $user = '';
+        next;
+    }
+    my ($k,$v) = split(/:/);
+    $v =~ s/^\s+//g;
+    $v =~ s/\s+$//g;
+
+    if ($k =~ /Full Name/) {
+        $users{$user}{'gecos'} = $v;
+    }
+    if ($k =~ /Unix username/) {
+        $user = lc($v).'@'.$domain;
+    }
+}
+
+@out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -Lw`;
+
 foreach (@out) {
     my ($user,$uid,$lan_hash,$nt_hash,$flags,$lct) = split(/:/);
+    $user = lc($user);
     if ($flags =~ /U/ && $passwd->get($user.'@'.$domain)) { # this is a user
         my $locked = 0;
         my $expired = 0;
+        my $new = 0;
 
         if ($flags =~ /D/) { # user is disabled
             $locked = 1;
         }
 
+        if ($lct eq 'LCT-00000000') {
+            $new = 1;
+        }
         my $tmp = (split(/LCT-/,$lct))[1];
         my $expire_date = hex($tmp) + (int($age) * 24 * 60 * 60);
         if  ($expire_date  < $now) { # password is expired
@@ -57,6 +83,9 @@ foreach (@out) {
         }
         $users{$user.'@'.$domain}{'locked'} = $locked;
         $users{$user.'@'.$domain}{'expired'} = $expired;
+        $users{$user.'@'.$domain}{'new'} = $new;
+    } else {
+        delete($users{$user.'@'.$domain});
     }
 }
 
