@@ -2,16 +2,32 @@
 Virtualization=yes
 Name=host0
 
-[Network]
-Address={use Net::IPv4Addr; $OUT=$nsdc{'IpAddress'} . '/' . Net::IPv4Addr::ipv4_msk2cidr($nsdc{'IpMask'});}
-
 {
     use esmith::NetworksDB;
-    my $ndb = esmith::NetworksDB->open_ro(); 
-    @gateway = map { ($_->prop('role') eq 'green' && defined $_->prop('gateway')) ? $_->prop('gateway') : () } $ndb->bridges;
-    if($gateway[0]) {
-        $OUT = "[Route]\n";
-        $OUT .= "Gateway=$gateway[0]\n";
+    use Net::IPv4Addr qw( :all );
+    my $ndb = esmith::NetworksDB->open_ro();
+    my $bridge;
+    my $nsdcIp = $nsdc{IpAddress} or die ("[ERROR] NethServer domain controller address not configured!");
+    
+    #find a "green" bridge wich network contains NethServer domain controller IP address and use it as bridge for Samba 4 DC machine
+    foreach ($ndb->green()) {
+        my $type = $_->prop('type') || 'ethernet';
+        if ($type eq 'bridge' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')) {
+            $bridge = $_->key;
+            last;
+        }
+    }
+    if (!$bridge) {
+        die ("[ERROR] There is no network bridge for NethServer domain controller");
+    }
+
+    $OUT = "[Network]\n";
+    $OUT .= "Address=" . $nsdc{'IpAddress'} . '/' . ipv4_msk2cidr($ndb->get_prop($bridge, 'netmask')) . "\n\n";
+
+    $gateway=$ndb->get_prop($bridge, 'gateway');
+    if($gateway) {
+        $OUT .= "[Route]\n";
+        $OUT .= "Gateway=$gateway\n";
     }
 }
 
