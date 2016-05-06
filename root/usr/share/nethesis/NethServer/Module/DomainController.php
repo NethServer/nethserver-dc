@@ -31,12 +31,22 @@ class DomainController extends \Nethgui\Controller\AbstractController
     public function initialize()
     {
         parent::initialize();
-        $this->declareParameter('IpAddress', $this->createValidator(Validate::IPv4)->platform('dcipaddr'), array('configuration', 'nsdc', 'IpAddress'));
+        $this->declareParameter('IpAddress', $this->createValidator(Validate::IPv4), array('configuration', 'nsdc', 'IpAddress'));
+        $this->declareParameter('force', '/^(yes)?$/');
     }
 
-    protected function onParametersSaved($changes)
+    public function bind(\Nethgui\Controller\RequestInterface $request)
     {
-        $this->getPlatform()->signalEvent('nethserver-dc-save');
+        parent::bind($request);
+        $this->getValidator('IpAddress')->platform('dcipaddr', $this->parameters['force'] === 'yes' ? 1 : 0);
     }
 
+    public function process()
+    {
+        parent::process();
+        if($this->getRequest()->isMutation()) {
+            $this->getPlatform()->getDatabase('configuration')->setProp('nsdc', array('status' => 'enabled'));
+            $this->getPlatform()->signalEvent('nethserver-dc-save &');
+        }
+    }
 }

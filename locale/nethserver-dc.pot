@@ -16,20 +16,10 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: root/etc/nethserver/todos.d/40nethserver-dc-configure-bridge:46
-msgid "Configure Samba 4 bridge"
-msgstr ""
-
-#: root/etc/nethserver/todos.d/40nethserver-dc-configure-bridge:49
-msgid ""
-"Configure a bridge on green network for Samba 4 Domain Controller virtual "
-"machine"
-msgstr ""
-
 #: root/etc/nethserver/todos.d/45nethserver-dc-set-ip:39
-msgid "Configure Samba 4 IP"
+msgid "Configure Samba Active Directory"
 msgstr ""
 
 #: root/etc/nethserver/todos.d/45nethserver-dc-set-ip:42
-msgid "Configure an IP address for Samba 4 Domain Controller virtual machine"
+msgid "The Domain Controller (DC) container must be configured before being started"
 msgstr ""

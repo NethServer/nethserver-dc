@@ -21,23 +21,22 @@
 #
 
 use strict;
-
-my $nsdcIp = shift;
-
 use esmith::NetworksDB;
 use Net::IPv4Addr qw( :all );
+
+my $force = shift;
+my $nsdcIp = shift;
+
 my $ndb = esmith::NetworksDB->open_ro();
-
 my @greens = $ndb->green();
-
-my $error = 3; # no green bridge found
+my $error = ($force > 0 ? 4 : 3); # no green bridge found
 
 foreach (@greens) {
     my $type = $_->prop('type') || 'ethernet';
     if($type eq 'bridge') {
         $error = 4; # at least one green bridge was found
     }
-    if ($type eq 'bridge' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')) {
+    if (($type eq 'bridge' || $force > 0) && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')) {
         exit(0); # SUCCESS!
     }
 }

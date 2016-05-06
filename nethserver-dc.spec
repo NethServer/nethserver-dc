@@ -32,7 +32,9 @@ mkdir -p root/usr/lib/nethserver-dc
 mv %{SOURCE1} root/usr/lib/nethserver-dc
 (cd root   ; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} %{buildroot} | \
-  sed '\:^/etc/sysconfig/nsdc: d' > %{name}-%{version}-filelist
+  sed '\:^/etc/sysconfig/nsdc: d
+\:^/etc/nethserver/todos.d/: d
+' > %{name}-%{version}-filelist
 
 %post
 %systemd_post nsdc.service
@@ -48,8 +50,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %doc COPYING
 %dir %{_nseventsdir}/%{name}-update
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
-%attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc-configure-bridge
-%attr(0755,root,root) /etc/nethserver/todos.d/45nethserver-dc-set-ip
+%attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc
 
 %changelog
 * Fri Jan 29 2016 Davide Principi <davide.principi@nethesis.it>
