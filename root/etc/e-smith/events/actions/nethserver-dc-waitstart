@@ -1,0 +1,14 @@
+#!/bin/bash
+
+domain=$(hostname -d)
+ipaddr=$(/sbin/e-smith/config getprop nsdc IpAddress)
+
+for((a=0; a < 60; a++)); do
+    if host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null; then
+        exit 0;
+    fi
+    sleep 5;
+done
+
+echo "[ERROR] could not connect to Samba Domain Controller"
+exit 1

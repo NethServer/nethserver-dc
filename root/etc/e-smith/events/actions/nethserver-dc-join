@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2015 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
+
+/sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress}
+/sbin/e-smith/expand-template /etc/dnsmasq.conf
+systemctl restart dnsmasq
+
+# Join the domain with default credentials
+echo "Nethesis,1234" | /usr/sbin/realm join $(hostname -d)
+
+if [[ $? == 0 ]]; then
+    exec /sbin/e-smith/signal-event nethserver-sssd-save
+else
+    echo "[ERROR] DC join failed" 1>&2
+    exit 1
+fi

@@ -33,12 +33,13 @@ event_templates('nethserver-dc-update', qw(
 ));
 
 event_actions('nethserver-dc-save', qw(
-   nethserver-dc-install 20
-   nethserver-dc-password-policy       50
+   nethserver-dc-install 01
+   nethserver-dc-waitstart 95
+   nethserver-dc-join 96
+   nethserver-dc-password-policy 97
 ));
 
 event_templates('nethserver-dc-save', qw(
-   /etc/dnsmasq.conf
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
    /var/lib/machines/nsdc/etc/hosts
