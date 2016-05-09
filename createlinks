@@ -34,6 +34,7 @@ event_templates('nethserver-dc-update', qw(
 
 event_actions('nethserver-dc-save', qw(
    nethserver-dc-install 01
+   nethserver-dc-create-bridge 02
    nethserver-dc-waitstart 95
    nethserver-dc-join 96
    nethserver-dc-password-policy 97

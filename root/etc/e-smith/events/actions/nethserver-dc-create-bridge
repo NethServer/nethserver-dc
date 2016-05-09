@@ -1,0 +1,87 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::NetworksDB;
+use esmith::ConfigDB;
+use esmith::event;
+use Net::IPv4Addr qw( :all );
+
+my $ndb = esmith::NetworksDB->open();
+my $confDb = esmith::ConfigDB->open();
+
+my $greenInterface;
+my $greenIp;
+my $greenGw;
+my $greenMask;
+my $greenBootProto;
+my %props;
+my @bridgeNames = ();
+my $nsdcIp = $confDb->get_prop("nsdc","IpAddress") || die "[ERROR] domain controller machine IP not set";
+
+#Get first green interface
+foreach ($ndb->green()) {
+    my $type = $_->prop('type') || 'unknow';
+    my $role = $_->prop('role') || 'unknow';
+    if ($type eq 'bridge' && $role eq 'green' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')){
+        print "[INFO] A suitable bridge on green interface already exists!\n";
+        exit 0;
+    } elsif ($type eq 'ethernet' && $role eq 'green' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')){
+#       %props = $_->props;
+       $greenInterface = $_->key;
+       $greenIp = $_->prop('ipaddr');
+       $greenGw = $_->prop('gateway');
+       $greenMask = $_->prop('netmask');
+       last;
+    }
+}
+
+if (!$greenInterface) {
+    #Die if there aren't green interfaces
+    die "[ERROR] No green interface configured"
+}
+
+my $bridgeNum = 0;
+my $i;
+for ($i=0; $i<20; $i++){
+    if (!$ndb->get('br'.$i)) {
+        last;
+    }
+}
+
+my $bridgeName = 'br'.$i;
+
+#change ethX from green to bridged
+$ndb->new_record($bridgeName, {'type'=>'bridge', 'gateway' => $greenGw, 'ipaddr'=>$greenIp, 'netmask'=>$greenMask, 'role'=>'green'});
+my $green = $ndb->get($greenInterface);
+$green->delete_prop('ipaddr');
+$green->delete_prop('netmask');
+$green->delete_prop('gateway');
+$green->delete_prop('bootproto');
+$green->merge_props('role'=>'bridged', 'bridge' => $bridgeName);
+
+#launch interface-update event
+if( ! esmith::event::event_signal('interface-update')) {
+    exit(1);
+}
+
+exit 0;
