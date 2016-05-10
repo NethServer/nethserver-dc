@@ -26,6 +26,8 @@ ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
 /sbin/e-smith/expand-template /etc/dnsmasq.conf
 systemctl restart dnsmasq
 
+# Truncate sssd.conf
+> /etc/sssd/sssd.conf
 # Join the domain with default credentials
 echo "Nethesis,1234" | /usr/sbin/realm join $(hostname -d)
 
