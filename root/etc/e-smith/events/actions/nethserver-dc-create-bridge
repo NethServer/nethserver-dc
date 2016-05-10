@@ -44,9 +44,9 @@ foreach ($ndb->green()) {
     my $role = $_->prop('role') || 'unknow';
     if ($type eq 'bridge' && $role eq 'green' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')){
         print "[INFO] A suitable bridge on green interface already exists!\n";
+        $confDb->set_prop('nsdc', 'bridge', $_->key);
         exit 0;
     } elsif ($type eq 'ethernet' && $role eq 'green' && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')){
-#       %props = $_->props;
        $greenInterface = $_->key;
        $greenIp = $_->prop('ipaddr');
        $greenGw = $_->prop('gateway');
@@ -78,6 +78,8 @@ $green->delete_prop('netmask');
 $green->delete_prop('gateway');
 $green->delete_prop('bootproto');
 $green->merge_props('role'=>'bridged', 'bridge' => $bridgeName);
+
+$confDb->set_prop('nsdc', 'bridge', $bridgeName);
 
 #launch interface-update event
 if( ! esmith::event::event_signal('interface-update')) {
