@@ -119,3 +119,9 @@ event_link("nethserver-dc-group-modify", "group-modify", "40");
 validator_actions('dcipaddr', qw(
     ipgreenandbridged 20
 ));
+
+#--------------------------------------------------
+# Create bridge on save
+#--------------------------------------------------
+event_link("nethserver-dc-create-bridge", "nethserver-dc-save","02");
+
