@@ -27,11 +27,6 @@ event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
 ));
 
-
-event_templates('nethserver-dc-update', qw(
-    /etc/sudoers
-));
-
 event_actions('nethserver-dc-save', qw(
    nethserver-dc-install 01
    nethserver-dc-create-bridge 02

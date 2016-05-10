@@ -34,6 +34,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %{genfilelist} %{buildroot} | \
   sed '\:^/etc/sysconfig/nsdc: d
 \:^/etc/nethserver/todos.d/: d
+\:^/etc/suoders.d/: d
 ' > %{name}-%{version}-filelist
 
 %post
@@ -51,6 +52,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %dir %{_nseventsdir}/%{name}-update
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
 %attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc
+%config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
 * Fri Jan 29 2016 Davide Principi <davide.principi@nethesis.it>

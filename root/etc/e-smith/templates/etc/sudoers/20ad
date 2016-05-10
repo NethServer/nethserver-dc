@@ -1,8 +1,0 @@
-{
-    #
-    # 20ad
-    #
-    push @cmnd_alias_httpd_admin, "/usr/libexec/nethserver/ad-list-users";
-    '';
-}
-
