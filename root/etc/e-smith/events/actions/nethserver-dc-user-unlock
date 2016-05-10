@@ -51,17 +51,10 @@ if( ! $account) {
     die "[ERROR] Account `$userName` not found.\n";
 }
 
-my $cmd = "/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user disable '$userName'" ;
+my $cmd = "/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user enable '$userName'" ;
 
 system($cmd) == 0
-        or die "Error running samba-tool command to lock account $userName";
+        or die "[ERROR] running samba-tool command to unlock account $userName";
 
-# Check if the user is really locked
-my $out = `/usr/bin/systemd-run -M nsdc -q -t pdbedit -L -w $userName | cut -d: -f5 `;
-if ($out =~ /D/) {
-    exit 0;
-} 
-
-exit 1;
 
 
