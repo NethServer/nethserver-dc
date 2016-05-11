@@ -28,7 +28,7 @@ my $homeDirPrefix = '/var/lib/nethserver/home/';
 
 my $event = shift;
 my $userName = shift;
-my $FullName = shift;
+my $FullName = shift || '';
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
 if(! defined ($userName)) {
@@ -40,15 +40,15 @@ if( ! -x $shell) {
     $shell = '/bin/false';
 }
 
-my @FullName = split / /, $FullName;
-my $Name = shift @FullName;
-my $Surname = join(' ',@FullName);
+if ($FullName eq '') {
+    $FullName = $userName;
+}
 
 #accept user@domain format
 $userName =~ s/@.*//;
 
 #Create user
-my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$Name" --surname=$Surname` ;
+my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$FullName"` ;
 
 $out =~ s/^\s+|\s+$|\s+\n+$//g; 
 
