@@ -1,0 +1,96 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+use strict;
+use esmith::ConfigDB;
+use JSON;
+
+my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
+my $domain = $db->get_value('DomainName');
+my $expression;
+my $attributes;
+my $cmd;
+
+
+#
+# Create an hash %users  "Username" => "cn"
+#
+
+$expression = '(objectCategory=user)';
+$attributes = 'cn sAMAccountName';
+$cmd = '/usr/bin/net ads search -P ';
+$cmd .= " '$expression' ";
+$cmd .= " $attributes ";
+
+my %users = ();
+my $u;
+
+open(PS,$cmd.'|');
+while ( <PS> ){
+    if ($_ ~~ /^cn: (.*)$/){
+       $u = $1;
+    } elsif ($_ ~~ /^sAMAccountName:\s+(.*)$/){
+        $users{$u} = $1;
+    }
+}
+
+
+#
+# Get groups and members
+#
+
+$expression = '(&(objectCategory=group)';
+
+#Don't show system groups
+my @sysgroups = ("Allowed RODC Password Replication Group","Enterprise Read-Only Domain Controllers","Denied RODC Password Replication Group","Pre-Windows 2000 Compatible Access","Windows Authorization Access Group","Certificate Service DCOM Access","Network Configuration Operators","Terminal Server License Servers","Incoming Forest Trust Builders","Read-Only Domain Controllers","Group Policy Creator Owners","Performance Monitor Users","Cryptographic Operators","Distributed COM Users","Performance Log Users","Remote Desktop Users","Account Operators","Event Log Readers","RAS and IAS Servers","Backup Operators","Domain Controllers","Server Operators","Enterprise Admins","Print Operators","Administrators","Domain Computers","Cert Publishers","DnsUpdateProxy","Domain Admins","Domain Guests","Schema Admins","Domain Users","Replicator","IIS_IUSRS","DnsAdmins","Guests","Users");
+for (@sysgroups){
+    $expression .= '(!(sAMAccountName='.$_.'))';
+}
+$expression .=')';
+
+
+$attributes = 'sAMAccountName member';
+$cmd = '/usr/bin/net ads search -P ';
+$cmd .= " '$expression' ";
+$cmd .= " $attributes ";
+
+open(PS,$cmd.'|');
+
+my %groups;
+my $group = '';
+
+while ( <PS> ){
+    if ($_ ~~ /^sAMAccountName:\s+(.*)$/){
+        $group = $1.'@'.$domain;
+        $groups{$group}{'members'} = [];
+    } elsif ($_ ~~ /^member: CN=([^,]*),.*/){
+       #add member
+       if ($users{$1}){
+            push($groups{$group}{'members'}, $users{$1}.'@'.$domain);
+       } 
+    }
+}
+
+print to_json(\%groups);
+
+
+exit 0;
