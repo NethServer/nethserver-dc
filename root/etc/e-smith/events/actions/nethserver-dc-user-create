@@ -48,7 +48,7 @@ if ($FullName eq '') {
 $userName =~ s/@.*//;
 
 #Create user
-my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$FullName"` ;
+my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user add "$userName" --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName --given-name="$FullName" --use-username-as-cn` ;
 
 $out =~ s/^\s+|\s+$|\s+\n+$//g; 
 

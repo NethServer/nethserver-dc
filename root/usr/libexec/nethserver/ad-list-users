@@ -32,13 +32,14 @@ my $cmd;
 
 
 $expression = '(&(objectCategory=user)(!(sAMAccountName=krbtgt))(!(sAMAccountName=Guest)))';
-$attributes = 'sAMAccountName cn userAccountControl accountExpires memberOf pwdLastSet loginShell';
+$attributes = 'sAMAccountName cn userAccountControl accountExpires memberOf pwdLastSet loginShell displayName';
 $cmd = '/usr/bin/net ads search -P ';
 $cmd .= " '$expression' ";
 $cmd .= " $attributes ";
 
 my %users = ();
 my $cn;
+my $displayName;
 my $username;
 my $userAccountControl;
 my $accountExpires;
@@ -53,7 +54,7 @@ sub saveUser {
     } else {
         $users{$username}{'locked'} = 0;
     }
-    $users{$username}{'gecos'} = $cn;
+    $users{$username}{'gecos'} = $displayName || $cn;
 
     #check if user expires and if it's expired
     $users{$username}{'expired'} = 0;
@@ -86,8 +87,10 @@ while ( <PS> ){
             saveUser();
         }
         $cn = $1;
+    } elsif ($_ ~~ /^displayName:\s+(.*)$/){
+        $displayName = $1;
     } elsif ($_ ~~ /^sAMAccountName:\s+(.*)$/){
-        $username = $1.'@'.$domain;
+        $username = lc($1).'@'.$domain;
     } elsif ($_ ~~ /^accountExpires:\s+(.*)$/){
         $accountExpires = $1;
     } elsif ($_ ~~ /^userAccountControl:\s+(.*)$/){

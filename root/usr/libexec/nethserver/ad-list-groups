@@ -32,29 +32,6 @@ my $cmd;
 
 
 #
-# Create an hash %users  "Username" => "cn"
-#
-
-$expression = '(objectCategory=user)';
-$attributes = 'cn sAMAccountName';
-$cmd = '/usr/bin/net ads search -P ';
-$cmd .= " '$expression' ";
-$cmd .= " $attributes ";
-
-my %users = ();
-my $u;
-
-open(PS,$cmd.'|');
-while ( <PS> ){
-    if ($_ ~~ /^cn: (.*)$/){
-       $u = $1;
-    } elsif ($_ ~~ /^sAMAccountName:\s+(.*)$/){
-        $users{$u} = $1;
-    }
-}
-
-
-#
 # Get groups and members
 #
 
@@ -84,9 +61,7 @@ while ( <PS> ){
         $groups{$group}{'members'} = [];
     } elsif ($_ ~~ /^member: CN=([^,]*),.*/){
        #add member
-       if ($users{$1}){
-            push($groups{$group}{'members'}, $users{$1}.'@'.$domain);
-       } 
+       push($groups{$group}{'members'}, $1.'@'.$domain);
     }
 }
 
