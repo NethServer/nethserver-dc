@@ -2,3 +2,4 @@
 # 20_nethserver_dc
 #
 %adm ALL=NOPASSWD: /usr/libexec/nethserver/ad-list-users
+
