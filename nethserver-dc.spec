@@ -12,6 +12,7 @@ BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
 
 Requires: nethserver-sssd, nethserver-release
+Requires: expect
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
