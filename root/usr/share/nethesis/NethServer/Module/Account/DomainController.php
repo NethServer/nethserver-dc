@@ -1,6 +1,6 @@
 <?php
 
-namespace NethServer\Module;
+namespace NethServer\Module\Account;
 
 /*
  * 
@@ -55,13 +55,13 @@ class DomainController extends \Nethgui\Controller\AbstractController
         if ($this->getRequest()->isMutation()) {
             $this->getPlatform()->setDetachedProcessCondition('success', array(
                 'location' => array(
-                    'url' => $view->getModuleUrl('/DomainController?installSuccess'),
+                    'url' => $view->getModuleUrl('/Account/DomainController?installSuccess'),
                     'freeze' => TRUE,
             )));
         }
         parent::prepareView($view);
         if($this->getRequest()->hasParameter('installSuccess')) {
-            $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/Dashboard'));
+            $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/Account'));
         }
     }
 
