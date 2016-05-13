@@ -57,11 +57,11 @@ my $group = '';
 
 while ( <PS> ){
     if ($_ ~~ /^sAMAccountName:\s+(.*)$/){
-        $group = $1.'@'.$domain;
+        $group = lc($1).'@'.$domain;
         $groups{$group}{'members'} = [];
     } elsif ($_ ~~ /^member: CN=([^,]*),.*/){
        #add member
-       push($groups{$group}{'members'}, $1.'@'.$domain);
+       push($groups{$group}{'members'}, lc($1).'@'.$domain);
     }
 }
 
