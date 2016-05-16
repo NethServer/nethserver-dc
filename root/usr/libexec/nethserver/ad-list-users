@@ -31,7 +31,7 @@ my $attributes;
 my $cmd;
 
 
-$expression = '(&(objectCategory=user)(!(sAMAccountName=krbtgt))(!(sAMAccountName=Guest)))';
+$expression = '(objectCategory=user)';
 $attributes = 'sAMAccountName cn userAccountControl accountExpires memberOf pwdLastSet loginShell displayName';
 $cmd = '/usr/bin/net ads search -P ';
 $cmd .= " '$expression' ";
