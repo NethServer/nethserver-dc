@@ -35,7 +35,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %{genfilelist} %{buildroot} | \
   sed '\:^/etc/sysconfig/nsdc: d
 \:^/etc/nethserver/todos.d/: d
-\:^/etc/suoders.d/: d
+\:^/etc/sudoers.d/: d
 ' > %{name}-%{version}-filelist
 
 %post
