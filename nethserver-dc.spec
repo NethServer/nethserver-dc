@@ -1,12 +1,12 @@
 Name:           nethserver-dc
-Version:        0.0.0
+Version:        0.0.1
 Release:        1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
 License:        GPLv3+
 URL: %{url_prefix}/%{name}
 Source0:        %{name}-%{version}.tar.gz
-Source1:        ns-samba-0.0.1-1.ns7.x86_64.rpm
+Source1:        ns-samba-0.0.2-1.ns7.x86_64.rpm
 
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
@@ -56,5 +56,8 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
-* Fri Jan 29 2016 Davide Principi <davide.principi@nethesis.it>
+* Tue May 17 2016 Davide Principi <davide.principi@nethesis.it> - 0.0.1
+- Bump Samba 4.4.3
+
+* Fri Jan 29 2016 Davide Principi <davide.principi@nethesis.it> - 0.0.0
 - Initial version
