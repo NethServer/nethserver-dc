@@ -50,6 +50,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 
 %files -f %{name}-%{version}-filelist
 %doc COPYING
+%doc README.rst
 %dir %{_nseventsdir}/%{name}-update
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
 %attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc
