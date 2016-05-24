@@ -16,6 +16,7 @@ Requires: expect
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
+Conflicts: nethserver-directory
 
 %description
 NethServer Samba 4 Domain Controller configuration
