@@ -1,6 +1,6 @@
 Name:           nethserver-dc
-Version:        0.0.1
-Release:        1%{?dist}
+Version: 1.0.0
+Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
 License:        GPLv3+
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Jul 07 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.0-1
+- Release 1.0.0
+
 * Tue May 17 2016 Davide Principi <davide.principi@nethesis.it> - 0.0.1
 - Bump Samba 4.4.3
 
