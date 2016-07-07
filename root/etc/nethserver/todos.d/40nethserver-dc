@@ -33,7 +33,7 @@ if($provider eq 'none') {
     $response = {
         'action' => {
             'label' => __('Configure Samba Active Directory'),
-            'url' => '/Account/DomainController'
+            'url' => '/Account'
         },
         'text' => __('The Domain Controller (DC) container must be configured before being started'),
         'icon' => 'edit'
