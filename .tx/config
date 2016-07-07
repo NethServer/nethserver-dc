@@ -7,7 +7,7 @@ source_lang = en
 type = PO
 
 [nethserver.DomainController]
-source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_DomainController.php
+source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_Account_DomainController.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
