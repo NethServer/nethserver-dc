@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.0.0
+Version: 1.0.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed Jul 13 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.1-1
+- nethserver-dc backup fails if launched by cron or from interface -- NethServer/dev#5047
+
 * Thu Jul 07 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.0-1
 - Release 1.0.0
 
