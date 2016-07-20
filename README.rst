@@ -57,3 +57,18 @@ Once domain is joined, you can manage users from interface. From command line, y
 
   # net ads info
 
+Factory reset
+-------------
+
+The "Start DC" procedure from the UI is designed for a single run.  If it fails,
+reinstalling the whole server can be avoided with some bash commands.
+
+The following steps are required to clean up the DC state and prepare it for a
+new provisioning run. ::
+
+    realm leave
+    systemctl stop nsdc sssd
+    rm -vf /var/lib/machines/nsdc/etc/samba/smb.conf
+    find /var/lib/machines/nsdc/var/lib/samba/ -type f | xargs -- rm -vf
+    config setprop sssd Provider none status disabled
+    > /etc/sssd/sssd.conf
