@@ -26,14 +26,21 @@ ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
 /sbin/e-smith/expand-template /etc/dnsmasq.conf
 systemctl restart dnsmasq
 
+# Ensure sssd is stopped
+systemctl stop sssd
+
 # Truncate sssd.conf
 > /etc/sssd/sssd.conf
-# Join the domain with default credentials
-echo "Nethesis,1234" | /usr/sbin/realm join $(hostname -d)
 
-if [[ $? == 0 ]]; then
-    exec /sbin/e-smith/signal-event nethserver-sssd-save
-else
-    echo "[ERROR] DC join failed" 1>&2
-    exit 1
-fi
+for ((attempt = 1;attempt < 4; attempt++)); do
+    # Join the domain with default credentials
+    echo "Nethesis,1234" | /usr/sbin/realm join $(hostname -d)
+    if [[ $? == 0 ]]; then
+        exec /sbin/e-smith/signal-event nethserver-sssd-save
+    fi
+    echo "[WARNING] DC join attempt $attempt of 3 failed! Wait a few seconds..."
+    sleep 5
+done
+
+echo "[ERROR] DC join failed" 1>&2
+exit 1
