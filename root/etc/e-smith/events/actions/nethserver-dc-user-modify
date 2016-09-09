@@ -35,12 +35,8 @@ if(! defined ($userName)) {
 $userName =~ s/@.*//;
 
 #Modify user FullName
-my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -u "$userName" --fullname="$FullName"` ;
-
-$out =~ s/^\s+|\s+$|\s+\n+$//g; 
-
-if ( $out !~ /Logon/){
-    die $out;
+system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -u "$userName" "--fullname=$FullName"; expect "Unix username:" { exit 0 }; exit 3' >/dev/null));
+if ($? != 0) {
+    die("[ERROR] User $userName modification failed\n");
 }
 
-print "User $userName modified"."\n";

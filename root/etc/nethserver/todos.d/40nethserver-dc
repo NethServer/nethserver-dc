@@ -40,8 +40,8 @@ if($provider eq 'none') {
     };
 
 } elsif($provider eq 'ad') {
-    my $out = qx(exec </dev/null; /usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -w administrator);
-    if($out =~ m/:4EC38072B9C2D6CBD7467FF62128AEC2:/) {
+    system("expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -w administrator; expect :4EC38072B9C2D6CBD7467FF62128AEC2: { exit 0 }; exit 3' >/dev/null");
+    if($? == 0) {
         $response = {
             'action' => {
                 'label' => __("Set Administrator's password"),

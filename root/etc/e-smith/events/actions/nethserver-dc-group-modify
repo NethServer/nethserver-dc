@@ -25,6 +25,7 @@ use Errno;
 
 my $event = shift || die "Event name argument is missing\n";
 my $groupName = shift || die "Group name argument is missing\n";
+my $errors = 0;
 
 #accept group@domain format
 $groupName =~ s/@.*//;
@@ -32,7 +33,7 @@ $groupName =~ s/@.*//;
 my @newmembers = @ARGV;
 
 #get group users
-my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "$groupName"`;
+my $out = qx(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "$groupName"; expect { exit 0 }');
 
 my @oldmembers = split (" ",$out);
 my @membersToAdd = ();
@@ -60,13 +61,24 @@ foreach my $element (@oldmembers) {
 #remove members
 if (@membersToRemove){
     my $membersToRemove = join (",", @membersToRemove);
-    my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "$groupName" "$membersToRemove"`;
-    print $out;
+    system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "$groupName" "$membersToRemove"; expect "Removed members" { exit 0}; exit 3'));
+    if($? != 0) {
+        $errors ++;
+    }
 }
 
 #add members
 if (@membersToAdd){
     my $membersToAdd = join (",", @membersToAdd);
-    my $out = `/usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$membersToAdd"`;
-    print $out;
+    system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$membersToAdd"; expect "Added members" { exit 0 }; exit 3'));
+    if($? != 0) {
+        $errors ++;
+    }
 }
+
+if($errors > 0) {
+    warn("[ERROR] Failed to update the members list of group $groupName");
+    exit(1);
+}
+
+exit(0);
