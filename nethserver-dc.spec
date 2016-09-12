@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.0.2
+Version: 1.0.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,10 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Sep 12 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.3-1
+- Failures on Samba AD accounts management - Bug NethServer/dev#5103
+- DC join failed, realmd cannot join this realm - Bug NethServer/dev#5099
+
 * Thu Jul 21 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.2-1
 - LDAP bind on Samba 4 requires SSL (CVE-2016-2112) - NethServer/dev#5067
 
