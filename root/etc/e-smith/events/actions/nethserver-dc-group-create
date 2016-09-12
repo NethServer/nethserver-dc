@@ -41,7 +41,9 @@ if ($? != 0) {
 
 #Add members to group 
 my $members = join(',', @ARGV);
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$members"; expect "Added members" { exit 0 }; exit 3'));
-if ($? != 0) {
-    die("[ERROR] Failed to add members to group $groupName\n");
+if($members) {
+    system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$members"; expect "Added members" { exit 0 }; exit 3'));
+    if ($? != 0) {
+        die("[ERROR] Failed to add members to group $groupName\n");
+    }
 }
