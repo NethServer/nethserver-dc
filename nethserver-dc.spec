@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.0.4
+Version: 1.0.5
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Sep 22 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.5-1
+- Nsdc domain join fails with long hostname - Bug NethServer/dev#5110
+
 * Mon Sep 12 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.4-1
 - Failure on empty group creation - Bug NethServer/dev#5105
 
