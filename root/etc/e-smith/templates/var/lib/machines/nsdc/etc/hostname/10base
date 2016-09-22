@@ -1,1 +1,1 @@
-nsdc-{$SystemName}.{lc($DomainName)}
+{$nsdcname}.{lc($DomainName)}

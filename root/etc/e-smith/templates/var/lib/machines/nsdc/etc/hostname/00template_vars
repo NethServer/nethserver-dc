@@ -1,0 +1,15 @@
+{
+    #
+    # 00template_vars
+    #
+
+    use Digest::MD5 qw(md5_hex);
+
+    $nsdcname = lc(sprintf('nsdc-%s', $SystemName));
+
+    if(length($SystemName) > 10) {
+        $nsdcname = lc(sprintf('nsdc-%s%s', substr($SystemName, 0, 5), substr(md5_hex($SystemName . $DomainName), 0, 5)));
+    }
+
+    '';
+}
