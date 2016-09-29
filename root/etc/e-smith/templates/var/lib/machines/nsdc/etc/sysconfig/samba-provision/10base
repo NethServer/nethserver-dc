@@ -1,4 +1,4 @@
-DOMAIN={uc((split(/\./, $DomainName))[0])}
+DOMAIN={ $workgroup }
 REALM={lc($DomainName)}
 FWDNS={
     my @servers = split(/,/, $dns{'NameServers'});
