@@ -6,7 +6,7 @@
     $workgroup = 'WORKGROUP';
     if(defined $smb{'Workgroup'} && $smb{'Workgroup'}) {
         $workgroup = $smb{'Workgroup'};
-    } elsif($sssd{'Provider'} eq 'ad') {
+    } else {
         $workgroup = uc((split('\.', $DomainName))[0]);
     }
     $workgroup = substr($workgroup, 0, 15);
