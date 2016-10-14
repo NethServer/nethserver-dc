@@ -60,6 +60,14 @@ class DomainController extends \Nethgui\Controller\AbstractController
             )));
         }
         parent::prepareView($view);
+
+        $view['NetbiosDomain'] = $this->getPlatform()->getDatabase('configuration')->getProp('smb', 'Workgroup');
+        if ( ! $view['NetbiosDomain']) {
+            $domainName = $this->getPlatform()->getDatabase('configuration')->getType('DomainName');
+            $view['NetbiosDomain'] = \Nethgui\array_head(explode('.', $domainName));
+        }
+        $view['NetbiosDomain'] = strtoupper(substr($view['NetbiosDomain'], 0, 15));
+
         if($this->getRequest()->hasParameter('installSuccess')) {
             $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/Account'));
         }

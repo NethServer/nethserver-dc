@@ -3,6 +3,7 @@
 /* @var $view \Nethgui\Renderer\Xhtml */
 
 echo $view->header()->setAttribute('template', $T('DomainController_Title'));
+
 ?>
 <div class='dcalert'>
   <p><?php echo $T('help_intro_label') ?></p>
@@ -19,6 +20,8 @@ echo $view->panel()
         ->insert($view->textInput('IpAddress'))
         ->insert($view->checkBox('force', 'yes'))
 ;
+
+echo $view->textInput('NetbiosDomain', $view::STATE_DISABLED | $view::STATE_READONLY);
 
 echo $view->buttonList($view::BUTTON_HELP)
     ->insert($view->button('StartDc', $view::BUTTON_SUBMIT))
