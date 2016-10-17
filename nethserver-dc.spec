@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.0.6
+Version: 1.0.7
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Oct 17 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.7-1
+- Display NetBIOS domain name on DC configuration page - NethServer/dev#5124
+
 * Mon Oct 10 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.6-1
 - Controller provisioning fails with long domain name - Bug NethServer/dev#5116
 
