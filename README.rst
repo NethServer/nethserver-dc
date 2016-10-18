@@ -72,3 +72,4 @@ new provisioning run. ::
     find /var/lib/machines/nsdc/var/lib/samba/ -type f | xargs -- rm -vf
     config setprop sssd Provider none status disabled
     > /etc/sssd/sssd.conf
+    signal-event nethserver-dnsmasq-save
