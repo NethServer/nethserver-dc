@@ -17,8 +17,7 @@ ExecStart=/usr/bin/samba-tool domain provision \
     "--option=dns forwarder=${FWDNS}" \
     "--domain=${DOMAIN}" "--realm=${REALM}" \
     "--adminpass=${ADMINPASS}" ${OPTIONS} \
-    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
-    ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
 
 [Install]
 WantedBy=multi-user.target
