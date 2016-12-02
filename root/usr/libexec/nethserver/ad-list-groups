@@ -20,43 +20,4 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-use strict;
-use esmith::ConfigDB;
-use JSON;
-
-my $db = esmith::ConfigDB->open_ro() || die("Could not open Config DB");
-my $domain = $db->get_value('DomainName');
-my $expression;
-my $attributes;
-my $cmd;
-
-
-#
-# Get groups and members
-#
-
-$expression = '(objectCategory=group)';
-$attributes = 'sAMAccountName member';
-$cmd = '/usr/bin/net ads search -P ';
-$cmd .= " '$expression' ";
-$cmd .= " $attributes ";
-
-open(PS,$cmd.'|');
-
-my %groups;
-my $group = '';
-
-while ( <PS> ){
-    if ($_ ~~ /^sAMAccountName:\s+(.*)$/){
-        $group = lc($1).'@'.$domain;
-        $groups{$group}{'members'} = [];
-    } elsif ($_ ~~ /^member: CN=([^,]*),.*/){
-       #add member
-       push($groups{$group}{'members'}, lc($1).'@'.$domain);
-    }
-}
-
-print to_json(\%groups);
-
-
-exit 0;
+exec('/usr/libexec/nethserver/list-groups', @ARGV);
