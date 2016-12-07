@@ -1,6 +1,6 @@
 <?php
 
-namespace NethServer\Module\Account;
+namespace NethServer\Module\SssdConfig;
 
 /*
  * 
@@ -27,6 +27,13 @@ use Nethgui\System\PlatformInterface as Validate;
 
 class DomainController extends \Nethgui\Controller\AbstractController
 {
+    protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
+    {
+        return new \NethServer\Tool\CustomModuleAttributesProvider($base, array(
+            'languageCatalog' => array('NethServer_Module_SssdConfig_DomainController', 'NethServer_Module_Account_DomainController'),
+            'category' => 'Configuration')
+        );
+    }
 
     public function initialize()
     {
@@ -69,7 +76,7 @@ class DomainController extends \Nethgui\Controller\AbstractController
         $view['NetbiosDomain'] = strtoupper(substr($view['NetbiosDomain'], 0, 15));
 
         if($this->getRequest()->hasParameter('installSuccess')) {
-            $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/Account'));
+            $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/SssdConfig'));
         }
     }
 
