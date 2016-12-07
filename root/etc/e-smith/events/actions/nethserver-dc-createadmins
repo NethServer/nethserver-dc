@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2016 Nethesis srl
+#
+# ---
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License or more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
+#
+
+set -e
+
+EVENT=$1
+DOMAIN=$(hostname -d)
+PRODUCT=$(/sbin/e-smith/config getprop sysconfig ProductName)
+ADMIN=$(/sbin/e-smith/config getprop admins user)
+
+if [[ "$(/usr/libexec/nethserver/list-users -A -s "$ADMIN")" == "{\"${ADMIN,,}\":"* ]]; then
+    # admin account already exists, nothing to do
+    exit 0;
+fi
+
+/etc/e-smith/events/actions/nethserver-dc-user-create $EVENT "$ADMIN@$DOMAIN" "${PRODUCT:-System} Administrator"
+/etc/e-smith/events/actions/nethserver-dc-user-lock $EVENT "$ADMIN@$DOMAIN"
+
+# add the admin account to Domain Admins group
+expect <<EOF
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Domain Admins" "$ADMIN"
+expect "Added members" { exit 0 }
+exit 3
+EOF
+
+
+
+# Lock the administrator account
+/etc/e-smith/events/actions/nethserver-dc-user-lock $EVENT "administrator@$DOMAIN"
+
