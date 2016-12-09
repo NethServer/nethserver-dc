@@ -34,6 +34,7 @@ event_actions('nethserver-dc-save', qw(
    nethserver-dc-waitstart 95
    nethserver-dc-join 96
    nethserver-dc-password-policy 97
+   nethserver-dc-createadmins 98
 ));
 
 event_templates('nethserver-dc-save', qw(

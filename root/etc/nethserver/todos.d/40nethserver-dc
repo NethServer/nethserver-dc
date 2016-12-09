@@ -38,19 +38,6 @@ if($provider eq 'none') {
         'text' => __('The Domain Controller (DC) container must be configured before being started'),
         'icon' => 'edit'
     };
-
-} elsif($provider eq 'ad') {
-    system("expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -w administrator; expect :4EC38072B9C2D6CBD7467FF62128AEC2: { exit 0 }; exit 3' >/dev/null");
-    if($? == 0) {
-        $response = {
-            'action' => {
-                'label' => __("Set Administrator's password"),
-                'url' => '/Account'
-            },
-            'text' => __('The Adminstrator user has still the default "Nethesis,1234" password. Secure the Samba Domain Controller by setting a new password.'),
-            'icon' => 'key'
-        };
-    }
 }
 
 if(defined $response) {
