@@ -27,6 +27,7 @@ if ! [ -d ${nsroot}/etc/yum/vars ]; then
     mkdir -p ${nsroot}/var/log/journal
     mkdir -p ${nsroot}/etc/systemd/network
     yum -y --releasever=7 --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd | /usr/libexec/nethserver/ptrack-nsdc-install
+    rm -f ${nsroot}/etc/krb5.conf
     systemctl enable machines.target
     systemctl --root=${nsroot} enable samba-provision.service samba.service
 fi
