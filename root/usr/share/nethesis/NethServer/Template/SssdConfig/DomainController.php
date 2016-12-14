@@ -50,3 +50,22 @@ $view->includeCss("
         margin-left: 25px;
     }
 ");
+
+$adminTodoString = json_encode($view->getModuleUrl('/AdminTodo?notifications'), TRUE);
+
+$view->includeJavascript("
+(function ( $ ) {
+
+    function loadPage() {
+        $.Nethgui.Server.ajaxMessage({
+            isMutation: false,
+            url: $adminTodoString
+        });
+    }
+
+    $(document).ready(function() {
+        loadPage();
+    });
+
+})( jQuery);
+");

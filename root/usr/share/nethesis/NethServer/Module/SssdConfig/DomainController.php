@@ -25,7 +25,7 @@ namespace NethServer\Module\SssdConfig;
 
 use Nethgui\System\PlatformInterface as Validate;
 
-class DomainController extends \Nethgui\Controller\AbstractController
+class DomainController extends \Nethgui\Controller\AbstractController implements \Nethgui\Component\DependencyConsumer
 {
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
     {
@@ -59,6 +59,8 @@ class DomainController extends \Nethgui\Controller\AbstractController
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
+        $this->notifications->defineTemplate('adminTodo', \NethServer\Module\AdminTodo::TEMPLATE, 'bg-yellow');
+
         if ($this->getRequest()->isMutation()) {
             $this->getPlatform()->setDetachedProcessCondition('success', array(
                 'location' => array(
@@ -81,6 +83,17 @@ class DomainController extends \Nethgui\Controller\AbstractController
         }
     }
 
+    public function setUserNotifications(\Nethgui\Model\UserNotifications $n)
+    {
+        $this->notifications = $n;
+        return $this;
+    }
 
+    public function getDependencySetters()
+    {
+        return array(
+            'UserNotifications' => array($this, 'setUserNotifications'),
+        );
+    }
 
 }
