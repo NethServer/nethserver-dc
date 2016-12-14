@@ -62,7 +62,7 @@ class DomainController extends \Nethgui\Controller\AbstractController
         if ($this->getRequest()->isMutation()) {
             $this->getPlatform()->setDetachedProcessCondition('success', array(
                 'location' => array(
-                    'url' => $view->getModuleUrl('/Account/DomainController?installSuccess'),
+                    'url' => $view->getModuleUrl('/SssdConfig/DomainController?installSuccess'),
                     'freeze' => TRUE,
             )));
         }
@@ -74,6 +74,7 @@ class DomainController extends \Nethgui\Controller\AbstractController
             $view['NetbiosDomain'] = \Nethgui\array_head(explode('.', $domainName));
         }
         $view['NetbiosDomain'] = strtoupper(substr($view['NetbiosDomain'], 0, 15));
+        $view['nsdcStatus'] = $this->getPlatform()->getDatabase('configuration')->getProp('nsdc', 'status');
 
         if($this->getRequest()->hasParameter('installSuccess')) {
             $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/SssdConfig'));
