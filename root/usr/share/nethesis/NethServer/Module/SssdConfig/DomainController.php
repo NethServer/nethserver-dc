@@ -25,7 +25,7 @@ namespace NethServer\Module\SssdConfig;
 
 use Nethgui\System\PlatformInterface as Validate;
 
-class DomainController extends \Nethgui\Controller\AbstractController
+class DomainController extends \Nethgui\Controller\AbstractController implements \Nethgui\Component\DependencyConsumer
 {
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
     {
@@ -59,10 +59,12 @@ class DomainController extends \Nethgui\Controller\AbstractController
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
+        $this->notifications->defineTemplate('adminTodo', \NethServer\Module\AdminTodo::TEMPLATE, 'bg-yellow');
+
         if ($this->getRequest()->isMutation()) {
             $this->getPlatform()->setDetachedProcessCondition('success', array(
                 'location' => array(
-                    'url' => $view->getModuleUrl('/Account/DomainController?installSuccess'),
+                    'url' => $view->getModuleUrl('/SssdConfig/DomainController?installSuccess'),
                     'freeze' => TRUE,
             )));
         }
@@ -74,12 +76,24 @@ class DomainController extends \Nethgui\Controller\AbstractController
             $view['NetbiosDomain'] = \Nethgui\array_head(explode('.', $domainName));
         }
         $view['NetbiosDomain'] = strtoupper(substr($view['NetbiosDomain'], 0, 15));
+        $view['nsdcStatus'] = $this->getPlatform()->getDatabase('configuration')->getProp('nsdc', 'status');
 
         if($this->getRequest()->hasParameter('installSuccess')) {
             $view->getCommandList('/Main')->sendQuery($view->getModuleUrl('/SssdConfig'));
         }
     }
 
+    public function setUserNotifications(\Nethgui\Model\UserNotifications $n)
+    {
+        $this->notifications = $n;
+        return $this;
+    }
 
+    public function getDependencySetters()
+    {
+        return array(
+            'UserNotifications' => array($this, 'setUserNotifications'),
+        );
+    }
 
 }
