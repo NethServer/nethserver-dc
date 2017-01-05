@@ -20,5 +20,7 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+/etc/e-smith/events/actions/nethserver-sssd-leave
+
 find /var/lib/machines/nsdc/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
 signal-event nethserver-dc-save
