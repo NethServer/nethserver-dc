@@ -21,6 +21,8 @@
 #
 
 ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
+tmp=$(mktemp)
+domain=$(hostname -d)
 
 /sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress}
 /sbin/e-smith/expand-template /etc/dnsmasq.conf
@@ -31,6 +33,20 @@ systemctl stop sssd
 
 # Truncate sssd.conf
 > /etc/sssd/sssd.conf
+
+# Reset administrator password (usefull when restoring a backup)
+echo "Nethesis,1234" > $tmp
+for ((attempt = 1;attempt < 4; attempt++)); do
+    /etc/e-smith/events/actions/nethserver-dc-password-set install "administrator@"$domain $tmp
+    if [[ $? -gt 0 ]]; then
+        echo "[WARNING] Administrator reset password attempt $attempt of 3 failed! Wait a few seconds..."
+    else
+        break
+    fi
+    sleep 5
+done
+rm -f $tmp
+
 
 for ((attempt = 1;attempt < 4; attempt++)); do
     # Join the domain with default credentials
