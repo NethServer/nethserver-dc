@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #
 # Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
@@ -19,16 +20,4 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# Cleanup current configuration
-/etc/e-smith/events/actions/nethserver-sssd-leave
-
-# Restore Samba backups
 find /var/lib/machines/nsdc/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
-
-# Install the container
-signal-event nethserver-dc-save
-
-# Lock the administrator account after password reset
-DOMAIN=$(hostname -d)
-/etc/e-smith/events/actions/nethserver-dc-user-lock post-restore-config "administrator@$DOMAIN"
-

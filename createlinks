@@ -37,7 +37,7 @@ event_actions('nethserver-dc-save', qw(
    nethserver-dc-createadmins 98
 ));
 
-event_templates('nethserver-dc-save', qw(
+my @templates = (qw(
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
    /var/lib/machines/nsdc/etc/hosts
@@ -45,6 +45,8 @@ event_templates('nethserver-dc-save', qw(
    /var/lib/machines/nsdc/etc/sysconfig/samba-provision
    /etc/sysconfig/nsdc
 ));
+
+event_templates('nethserver-dc-save', @templates);
 
 event_services('nethserver-dc-save', qw(
    nsdc restart
@@ -55,7 +57,11 @@ event_services('nethserver-dc-save', qw(
 event_link("nethserver-dc-pre-backup" , "pre-backup-config", "40");
 event_link("nethserver-dc-post-backup", "post-backup-config", "40");
 event_link("nethserver-dc-pre-restore", "pre-restore-config", "40");
-event_link("nethserver-dc-post-restore", "post-restore-config", "50");
+event_actions('post-restore-config', qw(
+    nethserver-dc-install 01
+    nethserver-dc-post-restore 40
+));
+event_templates('post-restore-config', @templates);
 
 #--------------------------------------------------
 # actions for user-create
