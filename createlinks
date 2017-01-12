@@ -63,6 +63,10 @@ event_actions('post-restore-config', qw(
 ));
 event_templates('post-restore-config', @templates);
 
+event_services('interface-update', qw(
+    nsdc start
+));
+
 #--------------------------------------------------
 # actions for user-create
 #--------------------------------------------------

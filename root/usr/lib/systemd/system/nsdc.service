@@ -6,6 +6,7 @@ Before=machines.target
 Before=sssd.service
 After=network.service
 Wants=network.service
+ConditionPathExists=!/var/run/.nethserver-fixnetwork
 
 [Service]
 Environment=OPTIONS=
