@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.1.0
+Version: 1.1.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Jan 16 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.1-1
+- DC: restore configuration fails - Bug NethServer/dev#5188
+
 * Thu Dec 15 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.0-1
 - Set the members of administrators group - NethServer/dev#5168
 - Store locally AD credentials - NethServer/dev#5165
