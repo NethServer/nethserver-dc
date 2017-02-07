@@ -73,12 +73,13 @@ new provisioning run. ::
 
     realm leave
     systemctl stop nsdc sssd
+    systemctl disable nsdc sssd
     rm -vf /var/lib/machines/nsdc/etc/samba/smb.conf
     find /var/lib/machines/nsdc/var/lib/samba/ -type f | xargs -- rm -vf
-    config setprop sssd Provider none status disabled
+    config setprop sssd Provider none status disabled AdDns ''
     > /etc/sssd/sssd.conf
     signal-event nethserver-dnsmasq-save
-    config setprop nsdc status disabled
+    config setprop nsdc status disabled IpAddress ''
 
 
 Changing the IP address of DC
