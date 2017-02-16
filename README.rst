@@ -74,22 +74,18 @@ Once domain is joined, you can manage users from interface. From command line, y
 Factory reset
 -------------
 
-The "Start DC" procedure from the UI is designed for a single run.  If it fails,
-reinstalling the whole server can be avoided with some bash commands.
+The "Start DC" procedure from the "Accounts provider" page is designed for a
+single run.  If it fails, reinstalling the whole server can be avoided by
+running the following command ::
 
-The following steps are required to clean up the DC state and prepare it for a
-new provisioning run. ::
+    signal-event nethserver-dc-factory-reset
 
-    realm leave
-    systemctl stop nsdc sssd
-    systemctl disable nsdc sssd
-    rm -vf /var/lib/machines/nsdc/etc/samba/smb.conf
-    find /var/lib/machines/nsdc/var/lib/samba/ -type f | xargs -- rm -vf
-    config setprop sssd Provider none status disabled AdDns ''
-    > /etc/sssd/sssd.conf
-    signal-event nethserver-dnsmasq-save
-    config setprop nsdc status disabled IpAddress ''
+The command cleans up the DC state and prepare it for new provisioning run.
+**Any existing user and group account is erased**.
 
+If a full DC reinstall is desired, after factory reset event, run also ::
+
+    rm -rf /var/lib/machines/nsdc
 
 Changing the IP address of DC
 -----------------------------

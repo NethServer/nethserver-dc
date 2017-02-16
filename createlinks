@@ -135,3 +135,10 @@ validator_actions('dcipaddr', qw(
 event_actions('migration-import', qw(
       nethserver-dc-migrate 25
 ));
+
+#
+# nethserver-factory-reset event
+#
+event_actions('nethserver-dc-factory-reset', qw(
+    nethserver-dc-factory-reset 30
+));
