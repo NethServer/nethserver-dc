@@ -1,2 +1,2 @@
 workgroup = { uc($smb{Workgroup}) }
-realm = { uc($smb{Realm}) }
+{ defined $smb{'Realm'} ? (sprintf('realm = %s', uc($smb{Realm}))) : '' }
