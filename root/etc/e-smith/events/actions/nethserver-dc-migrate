@@ -97,6 +97,13 @@ echo "Nethesis,1234" > ${tmppass}
 /etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${realm} ${tmppass} || (( errors ++ ))
 rm -f ${tmppass}
 
+# add the admin account to Domain Admins group
+expect <<EOF || (( errors ++ ))
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Domain Admins" "admin"
+expect "Added members" { exit 0 }
+exit 3
+EOF
+
 if (( errors > 0 )); then
     exit 1
 fi
