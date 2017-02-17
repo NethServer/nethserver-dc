@@ -104,6 +104,29 @@ expect "Added members" { exit 0 }
 exit 3
 EOF
 
+perl -- - $event $sourceDir <<'EOF' || (( errors ++ ))
+use strict;
+use esmith::AccountsDB;
+use esmith::event;
+
+my $event = shift;
+my $sourceDir = shift;
+my $errors = 0;
+
+my $db = esmith::AccountsDB->open_ro($sourceDir . "/home/e-smith/db/accounts") || die("[ERROR] Could not open source AccountsDB\n");
+
+foreach ($db->groups()) {
+    if( ! esmith::event::event_signal('group-create', $_->key, split(/,/, $_->prop('Members'))) ) {
+        $errors ++;
+    }
+}
+
+if($errors) {
+    exit 1;
+}
+exit 0;
+EOF
+
 if (( errors > 0 )); then
     exit 1
 fi
