@@ -1,0 +1,12 @@
+{
+# if you enable domain logons then you may want a per-machine or
+# per user logon script
+# run a specific logon batch file per workstation (machine)
+# ;   logon script = %m.bat\n
+# run a specific logon batch file per username
+# ; logon script = %U.bat\n\n";
+
+    return "" unless $smb{ServerRole} =~ m{^(PDC|BDC|ADS)$};
+
+    'logon script = netlogon.bat';
+}

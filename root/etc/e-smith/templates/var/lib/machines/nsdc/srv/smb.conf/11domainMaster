@@ -1,0 +1,3 @@
+{
+   "domain master = " . ( $smb{ServerRole} =~ m{^(PDC)$} ? "yes" : "no" );
+}

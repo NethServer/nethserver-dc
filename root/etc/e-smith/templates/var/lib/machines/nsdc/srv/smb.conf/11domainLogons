@@ -1,0 +1,3 @@
+{
+   "domain logons = " . ( $smb{ServerRole} =~ m{^(PDC|BDC)$} ? "yes" : "no" );
+}

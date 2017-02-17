@@ -1,0 +1,7 @@
+{
+# server string is the equivalent of the NT Description field
+
+   my $server_string = $smb{ServerString} || 'SME Server';
+
+   "server string = $server_string";
+}

@@ -1,0 +1,104 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+event=$1
+sourceDir=$2
+destDir=/var/lib/machines/nsdc
+errors=0
+realm=$(hostname -d)
+netbiosName=$(cat ${destDir}/etc/hostname)
+netbiosName=${netbiosName%%.${realm}}
+workgroup=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb Workgroup)
+
+rm -f ${destDir}/srv/*
+
+/sbin/e-smith/signal-event nethserver-sssd-leave || (( errors ++ ))
+
+if systemctl --quiet -M nsdc is-active samba; then
+    systemctl -M nsdc stop samba || (( errors ++ ))
+    mv -f ${destDir}/etc/samba/smb.conf{,.migration}
+fi
+
+rm -f ${destDir}/etc/samba/smb.conf
+find ${destDir}/var/lib/samba/ -type f | xargs -- rm -f
+
+cp --suffix=.migration --backup=simple ${sourceDir}/etc/passwd ${destDir}/etc/passwd || (( errors ++ ))
+cp --suffix=.migration --backup=simple ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
+
+cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
+cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
+
+# Expand the a sme8-derived smb.conf, using the source config DB:
+ESMITH_CONFIG_DB=${sourceDir}/home/e-smith/db/configuration /sbin/e-smith/expand-template ${destDir}/srv/smb.conf || (( errors ++ ))
+
+if [[ -n "${workgroup}" ]]; then
+    if /sbin/e-smith/config get smb &>/dev/null; then
+        /sbin/e-smith/config setprop smb Workgroup "${workgroup}"
+    else
+        /sbin/e-smith/config set smb '' Workgroup "${workgroup}"
+    fi
+fi
+
+# Fix the netbios name
+echo "
+
+[global]
+netbios name = ${netbiosName}
+
+" >> ${destDir}/srv/smb.conf
+
+# run the classicupgrade
+expect -f - <<EOF || (( errors ++ ))
+spawn /usr/bin/systemd-run -M nsdc -t /usr/bin/samba-tool domain classicupgrade --verbose --dbdir=/srv --use-xattrs=yes --realm=${realm} --dns-backend=SAMBA_INTERNAL /srv/smb.conf
+expect {
+    "Importing users" {
+        expect {
+            eof {
+                exit 0
+            }
+        }
+    }
+    eof {
+        exit 1
+    }
+}
+EOF
+
+if [[ $? != 0 ]]; then
+    rm -f ${destDir}/etc/samba/smb.conf
+fi
+
+mv -f ${destDir}/etc/passwd{.migration,}
+mv -f ${destDir}/etc/group{.migration,}
+
+systemctl -M nsdc start samba || (( errors ++ ))
+
+tmppass=$(mktemp /tmp/pw.XXXXXXXX)
+echo "Nethesis,1234" > ${tmppass}
+/etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${realm} ${tmppass} || (( errors ++ ))
+rm -f ${tmppass}
+
+if (( errors > 0 )); then
+    exit 1
+fi
+
+exec /etc/e-smith/events/actions/nethserver-dc-join

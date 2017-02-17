@@ -1,0 +1,4 @@
+{
+    $drive = $smb{LogonDrive} || 'Z';
+    return "logon drive = ${drive}:";
+}

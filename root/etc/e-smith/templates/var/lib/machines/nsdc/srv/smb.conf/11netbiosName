@@ -1,0 +1,4 @@
+{
+# this  sets the NetBIOS name by which a Samba server is known
+}
+netbios name = { $smb{ServerName} }
