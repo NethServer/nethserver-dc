@@ -28,10 +28,10 @@ if ! [[ -f "${cfg}" ]]; then
     exit 0
 fi
 
-if grep -s -F 'ldap server require strong auth=no' "${cfg}"; then
+if ! grep -s -F 'ldap server require strong auth=no' "${cfg}"; then
     exit 0
 fi
 
-echo "[NOTICE] Apply bugfix #5067 and restart nsdc"
-sed $'$ a\\\n[global]\\\nldap server require strong auth=no' -i "${cfg}"
-systemctl try-restart nsdc
+echo "[NOTICE] Revert bugfix #5067. We no longer need it. Restart nsdc to take it into effect."
+sed '/ldap server require strong auth=no/ d' -i "${cfg}"
+
