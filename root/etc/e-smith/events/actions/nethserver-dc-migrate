@@ -28,6 +28,14 @@ realm=$(hostname -d)
 netbiosName=$(cat ${destDir}/etc/hostname)
 netbiosName=${netbiosName%%.${realm}}
 workgroup=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb Workgroup)
+serverRole=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb ServerRole)
+
+if [[ "${serverRole}" == "PDC" || "${serverRole}" == "WS" ]]; then
+    echo "[NOTICE] Upgrading role ${serverRole} to Samba Active Directory DC..."
+else
+    echo "[WARNING] The role ${serverRole:-UNKNOWN} cannot be upgraded to Samba Active Directory DC. Skipped!"
+    exit 0
+fi
 
 rm -f ${destDir}/srv/*
 
