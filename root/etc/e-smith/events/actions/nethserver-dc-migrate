@@ -135,8 +135,11 @@ if($errors) {
 exit 0;
 EOF
 
+/etc/e-smith/events/actions/nethserver-dc-join ${event} || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${realm} || (( errors ++ ))
+
 if (( errors > 0 )); then
     exit 1
 fi
 
-exec /etc/e-smith/events/actions/nethserver-dc-join
+exit 0
