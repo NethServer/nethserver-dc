@@ -1,0 +1,147 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+event=$1
+sourceDir=$2
+destDir=/var/lib/machines/nsdc
+errors=0
+realm=$(hostname -d)
+netbiosName=$(cat ${destDir}/etc/hostname)
+netbiosName=${netbiosName%%.${realm}}
+workgroup=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb Workgroup)
+serverRole=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb ServerRole)
+
+if [[ "${serverRole}" == "PDC" || "${serverRole}" == "WS" ]]; then
+    echo "[NOTICE] Upgrading role ${serverRole} to Samba Active Directory DC..."
+else
+    echo "[WARNING] The role ${serverRole:-UNKNOWN} cannot be upgraded to Samba Active Directory DC. Skipped!"
+    exit 0
+fi
+
+rm -f ${destDir}/srv/*
+
+/sbin/e-smith/signal-event nethserver-sssd-leave || (( errors ++ ))
+
+if systemctl --quiet -M nsdc is-active samba; then
+    systemctl -M nsdc stop samba || (( errors ++ ))
+    mv -f ${destDir}/etc/samba/smb.conf{,.migration}
+fi
+
+rm -f ${destDir}/etc/samba/smb.conf
+find ${destDir}/var/lib/samba/ -type f | xargs -- rm -f
+
+cp --suffix=.migration --backup=simple ${sourceDir}/etc/passwd ${destDir}/etc/passwd || (( errors ++ ))
+cp --suffix=.migration --backup=simple ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
+
+cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
+cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
+
+if [[ -n "${workgroup}" ]]; then
+    if /sbin/e-smith/config get smb &>/dev/null; then
+        /sbin/e-smith/config setprop smb Workgroup "${workgroup}"
+    else
+        /sbin/e-smith/config set smb '' Workgroup "${workgroup}"
+    fi
+fi
+
+# Generate smb.conf
+echo "
+[global]
+domain logons = yes
+domain master = yes
+passdb backend = smbpasswd:/srv/smbpasswd
+private dir = /srv
+smb passwd file = /srv/smbpasswd
+workgroup = ${workgroup}
+netbios name = ${netbiosName}
+
+" > ${destDir}/srv/smb.conf
+
+# run the classicupgrade
+expect -f - <<EOF || (( errors ++ ))
+spawn /usr/bin/systemd-run -M nsdc -t /usr/bin/samba-tool domain classicupgrade --verbose --dbdir=/srv --use-xattrs=yes --realm=${realm} --dns-backend=SAMBA_INTERNAL /srv/smb.conf
+expect {
+    "Importing users" {
+        expect {
+            eof {
+                exit 0
+            }
+        }
+    }
+    eof {
+        exit 1
+    }
+}
+EOF
+
+if [[ $? != 0 ]]; then
+    rm -f ${destDir}/etc/samba/smb.conf
+fi
+
+mv -f ${destDir}/etc/passwd{.migration,}
+mv -f ${destDir}/etc/group{.migration,}
+
+systemctl -M nsdc start samba || (( errors ++ ))
+
+tmppass=$(mktemp /tmp/pw.XXXXXXXX)
+echo "Nethesis,1234" > ${tmppass}
+/etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${realm} ${tmppass} || (( errors ++ ))
+rm -f ${tmppass}
+
+# add the admin account to Domain Admins group
+expect <<EOF || (( errors ++ ))
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Domain Admins" "admin"
+expect "Added members" { exit 0 }
+exit 3
+EOF
+
+perl -- - $event $sourceDir <<'EOF' || (( errors ++ ))
+use strict;
+use esmith::AccountsDB;
+use esmith::event;
+
+my $event = shift;
+my $sourceDir = shift;
+my $errors = 0;
+
+my $db = esmith::AccountsDB->open_ro($sourceDir . "/home/e-smith/db/accounts") || die("[ERROR] Could not open source AccountsDB\n");
+
+foreach ($db->groups()) {
+    if( ! esmith::event::event_signal('group-create', $_->key, split(/,/, $_->prop('Members'))) ) {
+        $errors ++;
+    }
+}
+
+if($errors) {
+    exit 1;
+}
+exit 0;
+EOF
+
+/etc/e-smith/events/actions/nethserver-dc-join ${event} || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${realm} || (( errors ++ ))
+
+if (( errors > 0 )); then
+    exit 1
+fi
+
+exit 0
