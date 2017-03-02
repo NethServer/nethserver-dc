@@ -1,2 +1,0 @@
-workgroup = { uc($smb{Workgroup}) }
-{ exists $smb{'Realm'} ? (sprintf('realm = %s', uc($smb{Realm}))) : '' }

@@ -1,5 +1,0 @@
-{
-    # migration supports only PDC mode. Force PDC:
-    $smb{'ServerRole'} = 'PDC';
-    '';
-}

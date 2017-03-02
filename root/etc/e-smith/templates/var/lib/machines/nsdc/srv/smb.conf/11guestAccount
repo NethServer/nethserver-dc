@@ -1,5 +1,0 @@
-{
-# This is a username which will be used for access to services which
-# are specified as 'guest ok'.
-}
-guest account = public

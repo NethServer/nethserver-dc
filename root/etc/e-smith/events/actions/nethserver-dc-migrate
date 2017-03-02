@@ -55,9 +55,6 @@ cp --suffix=.migration --backup=simple ${sourceDir}/etc/group ${destDir}/etc/gro
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
-# Expand the a sme8-derived smb.conf, using the source config DB:
-ESMITH_CONFIG_DB=${sourceDir}/home/e-smith/db/configuration /sbin/e-smith/expand-template ${destDir}/srv/smb.conf || (( errors ++ ))
-
 if [[ -n "${workgroup}" ]]; then
     if /sbin/e-smith/config get smb &>/dev/null; then
         /sbin/e-smith/config setprop smb Workgroup "${workgroup}"
@@ -66,13 +63,18 @@ if [[ -n "${workgroup}" ]]; then
     fi
 fi
 
-# Fix the netbios name
+# Generate smb.conf
 echo "
-
 [global]
+domain logons = yes
+domain master = yes
+passdb backend = smbpasswd:/srv/smbpasswd
+private dir = /srv
+smb passwd file = /srv/smbpasswd
+workgroup = ${workgroup}
 netbios name = ${netbiosName}
 
-" >> ${destDir}/srv/smb.conf
+" > ${destDir}/srv/smb.conf
 
 # run the classicupgrade
 expect -f - <<EOF || (( errors ++ ))

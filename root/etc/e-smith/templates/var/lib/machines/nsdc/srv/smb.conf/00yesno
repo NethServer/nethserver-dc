@@ -1,8 +1,0 @@
-{
-    sub _yesno
-    {
-        my $arg = shift;
-
-	return (defined $arg) ? "yes" : "no";
-    }
-}
