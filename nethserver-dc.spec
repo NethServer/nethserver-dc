@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.1.2
+Version: 1.1.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Mar 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.3-1
+- Migration from sme8 - NethServer/dev#5196
+
 * Mon Feb 20 2017 Davide Principi <davide.principi@nethesis.it> - 1.1.2-1
 - AD local provider: annoying task completed with errors notification - Bug NethServer/dev#5220
 
