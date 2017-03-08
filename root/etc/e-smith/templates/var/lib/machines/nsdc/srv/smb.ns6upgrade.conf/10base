@@ -1,0 +1,37 @@
+#
+# 10base
+#
+
+{
+    use esmith::NetworksDB;
+    $ldapsam_ip = esmith::NetworksDB->open_ro()->get_prop($nsdc{'bridge'}, 'ipaddr') || '127.0.0.1';
+    '';
+}
+
+[global]
+
+workgroup = { $workgroup }
+
+security = user
+domain logons = yes
+domain master = yes
+passdb backend = ldapsam:ldap://{ $ldapsam_ip }
+ldapsam:trusted = yes
+ldapsam:editposix = no
+ldap group suffix = ou=Groups
+ldap user suffix = ou=People
+ldap machine suffix = ou=Computers
+ldap ssl = off
+ldap admin dn = cn=samba,dc=directory,dc=nh
+ldap suffix = dc=directory,dc=nh
+ldap passwd sync = no
+ldap idmap suffix = ou=Idmap
+idmap config * : backend = ldap
+idmap config * : ldap_url = ldap://{ $ldapsam_ip }
+idmap config * : ldap_base_dn = ou=Idmap,dc=directory,dc=nh
+idmap config * : ldap_user_dn = cn=samba,dc=directory,dc=nh
+idmap config * : range = 50000-99999
+idmap config { $workgroup } : range = 0 - 9999
+idmap config { $workgroup } : backend = nss
+obey pam restrictions = yes
+private dir = /srv

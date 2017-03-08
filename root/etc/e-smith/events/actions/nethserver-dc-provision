@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2016 Nethesis S.r.l.
+# Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -22,11 +22,11 @@
 
 nsroot=/var/lib/machines/nsdc
 
-if ! [ -d ${nsroot}/etc/yum/vars ]; then
-    mkdir -p ${nsroot}/etc/yum/vars
-    mkdir -p ${nsroot}/var/log/journal
-    mkdir -p ${nsroot}/etc/systemd/network
-    yum -y --releasever=7 --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd | /usr/libexec/nethserver/ptrack-nsdc-install
-    rm -f ${nsroot}/etc/krb5.conf
-    systemctl enable machines.target
+systemctl --root=${nsroot} enable samba-provision.service samba.service
+
+ProvisionType=$(/sbin/e-smith/config getprop nsdc ProvisionType)
+
+if [[ "${ProvisionType}" == "ns6upgrade" ]]; then
+    rm -f /var/lib/machines/nsdc/srv/secrets.tdb
+    tdbrestore /var/lib/machines/nsdc/srv/secrets.tdb </var/lib/nethserver/backup/secrets_tdb.dump
 fi
