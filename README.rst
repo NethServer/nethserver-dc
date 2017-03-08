@@ -1,12 +1,19 @@
 nethserver-dc
 =============
 
-The nethserver-dc package runs a systemd-nspawn container with a vanilla Samba 4.3.4 inside of it. It downloads, installs, configures and provision an Active Directory domain controller based on Samba.
+The nethserver-dc package runs a systemd-nspawn container (``nsdc``) with a vanilla
+Samba 4 inside of it. It downloads, installs, configures and provision an Active
+Directory domain controller based on Samba.
 
-Samba machine needs an IP address in a green network, different from the machine one. It also requires a bridge on the green interface. If needed, this bridge is created automatically. ::
+The ``nsdc`` container needs an IP address in a green network, different from the
+host machine one. It enslaves its network interface to a host bridge, with green
+role. If needed, this bridge is created automatically. 
+
+This is a typical configuration::
 
   # config show nsdc
   nsdc=service
+     ProvisionType=newdomain
      IpAddress=192.168.122.50
      bridge=br0
      status=enabled
@@ -15,24 +22,26 @@ nethserver-dc-save event
 ------------------------
 
 * it creates and configures systemd-nspawn machine (nethserver-dc-install
-  action). Machine is provisioned with domain and realm taken from local system
-  and won't be possible to change them anymore. For instance if system domain is
-  `nethserver.org` domain will be `NETHSERVER` and realm `nethserver.org`. Those
-  parameters are read from
-  `/var/lib/machines/nsdc/etc/sysconfig/samba-provision` template. To have a
-  shell inside nspawn machine, you can use ::
+  action). The Samba domain is provisioned by the ``samba-provision.service`` unit, according 
+  to the ``ProvisionType`` prop value. Supported values are:
 
-  # systemd-run -M nsdc -t /bin/bash
+  - ``newdomain`` (default): domain and realm are taken from local system and
+    won't be possible to change them anymore. For instance if system domain is
+    `nethserver.org` domain will be `NETHSERVER` and realm `nethserver.org`.
 
 * it creates a network bridge if needed, or select an existing one and save it in nsdc bridge db prop (`nethserver-dc-create-bridge` action)
 
 * it waits for the machine to come up (`nethserver-dc-waitstart`)
 
-* it joins the domain of new machine using default credentials (`nethserver-dc-join`). To join domain manually, clear sssd.conf, join domain and expand sssd.conf template
+* it joins the domain of new machine using default credentials (`nethserver-dc-join`).
 
 * it sets the password policy (`nethserver-dc-password-policy`)
 
 Realmd writes a lot of information on the system journal. See `journalctl` command. 
+
+To have a shell inside the ``nsdc`` container, you can run ::
+
+ # systemd-run -M nsdc -t /bin/bash
 
 
 Manual Join
@@ -45,9 +54,9 @@ nethserver-dc-join action joins automatically to domain. If you want to join dom
 
 then clear sssd.conf, join domain and expand sssd.conf template ::
 
-   # > /etc/sssd/sssd.conf
-   # realm join `config get DomainName`
-   # expand-template /etc/sssd/sssd.conf
+   > /etc/sssd/sssd.conf
+   realm join $(hostname -d)
+   expand-template /etc/sssd/sssd.conf
 
 Then provide the default administrator password::
 
@@ -55,8 +64,8 @@ Then provide the default administrator password::
 
 If everything goes well ::
 
-   # getent passwd administrator@`config get DomainName`
-   administrator@nethserver.org:*:261600500:261600513:Administrator:/home/administrator@nethserver.org:/bin/bash   
+   getent passwd administrator@$(hostname -d)
+   # output: administrator@nethserver.org:*:261600500:261600513:Administrator:/home/administrator@nethserver.org:/bin/bash   
 
 Once domain is joined, you can manage users from interface. From command line, you can use `net` command ::
 

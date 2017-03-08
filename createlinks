@@ -42,7 +42,6 @@ my @templates = (qw(
    /var/lib/machines/nsdc/etc/hostname
    /var/lib/machines/nsdc/etc/hosts
    /var/lib/machines/nsdc/etc/resolv.conf
-   /var/lib/machines/nsdc/etc/sysconfig/samba-provision
    /var/lib/machines/nsdc/etc/systemd/system/samba-provision.service
    /etc/sysconfig/nsdc
 ));

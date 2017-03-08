@@ -1,21 +1,25 @@
 [Service]
 Type=oneshot
 RemainAfterExit=no
-Environment=OPTIONS=--server-role=dc
-Environment=DOMAIN=mycompany
-Environment=REALM=mycompany.local
-Environment=ADMINPASS=Nethesis,1234
-Environment=FWDNS=8.8.4.4
-EnvironmentFile=-/etc/sysconfig/samba-provision
+Environment=DOMAIN={ $workgroup }
+Environment=REALM={ lc($DomainName) }
+Environment=FWDNS={
+    my @servers = split(/,/, $dns{'NameServers'});
+    $OUT = $servers[0] || '8.8.4.4';
+}
 {
-    $OUT = <<'EOF'
+    $OUT = "ExecStart=/bin/true";
+
+    if($nsdc{'ProvisionType'} eq 'newdomain') {
+        $OUT = <<'EOF1'
 ExecStart=/usr/bin/samba-tool domain provision \
     "--option=dns forwarder=${FWDNS}" \
     "--domain=${DOMAIN}" "--realm=${REALM}" \
-    "--adminpass=${ADMINPASS}" ${OPTIONS} \
+    "--adminpass=Nethesis,1234" --server-role=dc \
     ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
     ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
-EOF
+EOF1
+    }
 
 }
 
