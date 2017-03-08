@@ -22,10 +22,12 @@
 
 nsroot=/var/lib/machines/nsdc
 
-if ! [ -d ${nsroot}/etc/yum/vars ]; then
+if ! [ -d ${nsroot}/srv/nethserver ]; then
+    mkdir -p ${nsroot}/srv/nethserver
     mkdir -p ${nsroot}/etc/yum/vars
     mkdir -p ${nsroot}/var/log/journal
     mkdir -p ${nsroot}/etc/systemd/network
+    cp /etc/yum/vars/* ${nsroot}/etc/yum/vars
     yum -y --releasever=7 --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd | /usr/libexec/nethserver/ptrack-nsdc-install
     rm -f ${nsroot}/etc/krb5.conf
     systemctl enable machines.target
