@@ -26,6 +26,7 @@ ExecStart=/usr/bin/samba-tool domain classicupgrade \
     "--option=dns forwarder=${FWDNS}" \
     "--realm=${REALM}" \
     --dbdir=/srv /srv/smb.ns6upgrade.conf \
+    ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
     ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
     ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
 EOF2
