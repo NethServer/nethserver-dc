@@ -29,6 +29,11 @@ nethserver-dc-save event
     won't be possible to change them anymore. For instance if system domain is
     `nethserver.org` domain will be `NETHSERVER` and realm `nethserver.org`.
 
+  - ``ns6upgrade``: connect the LDAP service running on the host machine and 
+    migrate the WS/PDC domain from ns6 backup to an Active Directory domain.
+    The realm and domain name are set as described in the ``newdomain`` provision 
+    type.
+
 * it creates a network bridge if needed, or select an existing one and save it in nsdc bridge db prop (`nethserver-dc-create-bridge` action)
 
 * it waits for the machine to come up (`nethserver-dc-waitstart`)
