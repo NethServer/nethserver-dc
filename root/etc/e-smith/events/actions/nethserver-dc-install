@@ -36,7 +36,8 @@ if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
     mkdir -p ${nsroot}/var/log/journal
     mkdir -p ${nsroot}/etc/systemd/network
     cp -f /etc/yum/vars/* ${nsroot}/etc/yum/vars
-    yum -y --releasever=7 --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd | /usr/libexec/nethserver/ptrack-nsdc-install
+    rpm --root=${nsroot} --import /etc/pki/rpm-gpg/*
+    yum -y --releasever=/ --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd | /usr/libexec/nethserver/ptrack-nsdc-install
     rm -f ${nsroot}/etc/krb5.conf
     systemctl enable machines.target
 fi
