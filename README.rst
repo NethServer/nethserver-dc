@@ -92,6 +92,16 @@ If a full DC reinstall is desired, after factory reset event, run also ::
 
     rm -rf /var/lib/machines/nsdc
 
+Uninstall nethserver-dc
+-----------------------
+
+* Run the DC factory reset procedure and remove the :file:`/var/lib/machines/nsdc`
+  directory.
+
+* Uninstall the package ::
+
+    yum remove nethserver-dc
+
 Changing the IP address of DC
 -----------------------------
 
