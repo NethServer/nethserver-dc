@@ -1,0 +1,37 @@
+[Service]
+Type=oneshot
+RemainAfterExit=no
+Environment=ADMINPASS=Nethesis,1234
+Environment=DOMAIN={ $workgroup }
+Environment=REALM={ lc($DomainName) }
+Environment=FWDNS={
+    my @servers = split(/,/, $dns{'NameServers'});
+    $OUT = $servers[0] || '8.8.4.4';
+}
+{
+    $OUT = "ExecStart=/bin/true";
+
+    if($nsdc{'ProvisionType'} eq 'newdomain') {
+        $OUT = <<'EOF1'
+ExecStart=/usr/bin/samba-tool domain provision \
+    "--option=dns forwarder=${FWDNS}" \
+    "--domain=${DOMAIN}" "--realm=${REALM}" \
+    "--adminpass=${ADMINPASS}" --server-role=dc \
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
+    ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
+EOF1
+    } elsif ($nsdc{'ProvisionType'} eq 'ns6upgrade') {
+        $OUT = <<'EOF2'
+ExecStart=/usr/bin/samba-tool domain classicupgrade \
+    "--option=dns forwarder=${FWDNS}" \
+    "--realm=${REALM}" \
+    --dbdir=/srv /srv/smb.ns6upgrade.conf \
+    ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
+    ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
+EOF2
+    }
+
+}
+
+
