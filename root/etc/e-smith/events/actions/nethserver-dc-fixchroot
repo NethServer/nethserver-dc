@@ -34,3 +34,9 @@ for package in bind-utils ntp do
         yum -y --releasever=/ --installroot=${nsroot} install $package | /usr/libexec/nethserver/ptrack-nsdc-install
     fi
 done
+
+# Enable ntpd service
+if ! systemctl --quiet -M nsdc is-active ntpd; then
+    systemctl -M nsdc enable ntpd
+fi
+
