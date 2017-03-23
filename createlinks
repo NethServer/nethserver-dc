@@ -29,6 +29,8 @@ event_actions('nethserver-dc-update', qw(
    nethserver-dc-fixchroot 40
 ));
 
+event_templates('nethserver-dc-update', '/etc/sysconfig/nsdc');
+
 event_actions('nethserver-dc-save', qw(
    nethserver-dc-create-bridge 01
    nethserver-dc-install 02
