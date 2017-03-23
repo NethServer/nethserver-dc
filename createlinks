@@ -144,3 +144,10 @@ event_actions('migration-import', qw(
 event_actions('nethserver-dc-factory-reset', qw(
     nethserver-dc-factory-reset 30
 ));
+
+#
+# nethserver-dc-upgrade event
+#
+event_actions('nethserver-dc-upgrade', qw(
+    nethserver-dc-upgrade 30
+));
