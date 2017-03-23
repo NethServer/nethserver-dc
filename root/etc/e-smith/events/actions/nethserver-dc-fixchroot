@@ -28,7 +28,9 @@ fi
 
 nsroot=/var/lib/machines/nsdc
 
-if ! rpm -q --root=${nsroot} bind-utils >/dev/null; then
-    echo "[NOTICE] Fixing nsdc chroot, by installing missing packages"
-    yum -y --releasever=/ --installroot=${nsroot} install bind-utils | /usr/libexec/nethserver/ptrack-nsdc-install
-fi
+for package in bind-utils ntp do
+    if ! rpm -q --root=${nsroot} $package >/dev/null; then
+        echo "[NOTICE] Fixing nsdc chroot, by installing $package package"
+        yum -y --releasever=/ --installroot=${nsroot} install $package | /usr/libexec/nethserver/ptrack-nsdc-install
+    fi
+done
