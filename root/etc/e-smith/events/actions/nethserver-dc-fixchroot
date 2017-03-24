@@ -28,7 +28,21 @@ fi
 
 nsroot=/var/lib/machines/nsdc
 
-if ! rpm -q --root=${nsroot} bind-utils >/dev/null; then
-    echo "[NOTICE] Fixing nsdc chroot, by installing missing packages"
-    yum -y --releasever=/ --installroot=${nsroot} install bind-utils | /usr/libexec/nethserver/ptrack-nsdc-install
+for package in bind-utils ntp
+do
+    if ! rpm -q --root=${nsroot} $package >/dev/null; then
+        echo "[NOTICE] Fixing nsdc chroot, by installing $package package"
+        yum -y --releasever=/ --installroot=${nsroot} install $package | /usr/libexec/nethserver/ptrack-nsdc-install
+    fi
+done
+
+# Enable ntpd service
+if ! systemctl --quiet -M nsdc is-active ntpd; then
+    systemctl -M nsdc enable ntpd
 fi
+
+# Set ntpd permissions
+uid=$(grep ntp ${nsroot}/etc/passwd | awk -F: '{print $3}')
+chown 0:$uid ${nsroot}/lib/samba/ntp_signd/
+chmod 750 ${nsroot} ${nsroot}/lib/samba/ntp_signd/
+
