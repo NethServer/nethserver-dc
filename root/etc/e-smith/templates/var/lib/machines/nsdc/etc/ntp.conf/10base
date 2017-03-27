@@ -1,0 +1,15 @@
+# Local clock. Note that is not the "localhost" address!
+server 127.127.1.0
+fudge  127.127.1.0 stratum 10
+
+driftfile       /var/lib/ntp/ntp.drift
+logfile         /var/log/ntp
+ntpsigndsocket  /usr/local/samba/var/lib/ntp_signd/
+
+# Access control
+# Default restriction: Allow clients only to query the time
+restrict default kod nomodify notrap nopeer mssntp
+
+# No restrictions for "localhost"
+restrict 127.0.0.1
+

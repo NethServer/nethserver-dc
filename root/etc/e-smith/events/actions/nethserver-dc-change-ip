@@ -1,0 +1,102 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+event=$1
+ipaddress=$2
+
+if [ -z $ipaddress ]; then
+    echo "[ERROR] No IP address given"
+    exit 1
+fi
+
+# Stop the container
+if systemctl -q is-active nsdc 2>/dev/null; then
+    systemctl stop nsdc
+fi
+
+# Check if DC ip is inside the green network
+bridge=$(/sbin/e-smith/config getprop nsdc bridge)
+green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
+green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
+
+perl -e "use NetAddr::IP; \$n=NetAddr::IP->new('$ipaddress'); \$h=NetAddr::IP->new('$green_ipaddr', '$green_netmask'); exit ! \$n->within(\$h);"
+
+if [ $? -gt 0 ]; then
+    echo "[ERROR] DC address must be within green network!"
+    exit 1
+fi
+
+
+# Set the new ip address
+/sbin/e-smith/config setprop nsdc IpAddress $ipaddress
+/sbin/e-smith/config setprop sssd AdDns $ipaddress
+
+# Expand the templates from nethserver-dc-save even
+for F in $(find /etc/e-smith/events/nethserver-dc-save/templates2expand -type f); do
+    expand-template ${F##/etc/e-smith/events/nethserver-dc-save/templates2expand}
+done
+
+# Apply DNS configuration
+signal-event nethserver-dnsmasq-save
+
+# Start nsdc
+systemctl start nsdc
+
+# Update kerberos config
+domain=$(hostname -d | tr '[:lower:]' '[:upper:]')
+cp -p /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf.ori
+cat << EOF >> /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf 
+[realms]
+$domain = {
+   kdc = $ipaddress
+}
+EOF
+
+# Update DNS records
+for((a=0; a < 60; a++)); do
+    systemd-run -q -t -M nsdc /usr/sbin/samba_dnsupdate --verbose | grep -q 'No DNS updates needed'
+    if [ $? -eq 0 ]; then
+       break
+    fi
+    if [ $a -eq 59 ]; then
+        echo "[WARNING] Some DNS may not be updated"
+    fi
+done
+
+# Restore original kerberos config
+mv /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf.ori /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf
+
+# Remove kdcinfo cache
+rm -f /var/lib/sss/pubconf/kdcinfo.$domain
+
+# Check the new ip address
+if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null; then
+    echo "[ERROR] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
+    exit
+fi
+
+if ! net ads testjoin >/dev/null; then
+    echo "[ERROR] Join is invalid!"
+    exit 1
+fi
+
+exit 0

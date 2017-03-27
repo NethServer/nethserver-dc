@@ -125,66 +125,23 @@ Changing the IP address of DC
     Before applying this procedure, read carefully the `official Samba wiki page
     <https://wiki.samba.org/index.php/Changing_the_IP_Address_of_a_Samba_AD_DC>`_.
 
-Example, change the network address ("122" becomes "101"):
+The IP address of nsdc containter must be in the same network of the bridged green interface.
+If needed, first change the address of the green interface, then proceed with the following.
 
-* domain ``dpnet.nethesis.it``, realm ``DPNET.NETHESIS.IT``
-* bridge is ``br0``
-* current host IP: 192.168.122.7
-* current gateway IP: 192.168.122.1
+Example, change the network address:
+
+* current host IP: 192.168.101.7
 * current nsdc container IP: 192.168.122.77
-* new host IP: 192.168.101.7
-* new gateway IP: 192.168.101.1
 * new nsdc container IP: 192.168.101.77
 
-.. warning::
-    
-    This procedure must be run from the system console. **Do not it run
-    remotely!** The server can become unreachable!
+Execute the ``nethserver-dc-change-ip`` with the new ip address: ::
 
-1. Shut down the nsdc Linux container ::
+    signal-event nethserver-dc-change-ip <new_ip_address>
 
-    systemctl stop nsdc
+Example: ::
 
-2. Set the new host and gateway IP addresses ::
-    
-    db networks setprop br0 ipaddr 192.168.101.7 gateway 192.168.101.1 netmask 255.255.255.0
+    signal-event nethserver-dc-change-ip 192.168.101.77
 
-3. Set the new nsdc IP address ::
-    
-    config setprop nsdc IpAddress 192.168.101.77
-    config setprop sssd AdDns 192.168.101.77
-
-4. Expand the templates from nethserver-dc-save event ::
-
-    for F in $(find /etc/e-smith/events/nethserver-dc-save/templates2expand -type f); do
-        expand-template ${F##/etc/e-smith/events/nethserver-dc-save/templates2expand}
-    done
-
-5. Apply the changes ::
-
-    signal-event interface-update
-    signal-event nethserver-dnsmasq-save
-
-6. Start nsdc ::
-
-    systemctl start nsdc
-
-7. Edit ``/var/lib/machines/nsdc/var/lib/samba/private/krb5.conf`` and append a "realms" section like the following::
-
-    [realms]
-    DPNET.NETHESIS.IT = {
-       kdc = 192.168.101.77
-    }
-
-8. Install additional dependencies for ``samba_dnsupdate`` in nsdc container ::
-
-    yum --installroot=/var/lib/machines/nsdc/ -y install bind-utils
-
-8. Run ``samba_dnsupdate`` in nsdc container ::
-
-    systemd-run -t -M nsdc /usr/sbin/samba_dnsupdate --verbose
-
-8. Run again the last command, until it outputs *"No DNS updates needed"*.
-
-9. Clean up ``/var/lib/machines/nsdc/var/lib/samba/private/krb5.conf``, by removing the section appended at step 7
+Note that the event will fail if the new nsdc ip address is not in the same network
+of the green interface.
 
