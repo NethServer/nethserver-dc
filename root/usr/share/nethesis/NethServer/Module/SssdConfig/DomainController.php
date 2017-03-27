@@ -45,7 +45,7 @@ class DomainController extends \Nethgui\Controller\AbstractController implements
     public function bind(\Nethgui\Controller\RequestInterface $request)
     {
         parent::bind($request);
-        $this->getValidator('IpAddress')->platform('dcipaddr', $this->parameters['force'] === 'yes' ? 1 : 0);
+        $this->getValidator('IpAddress')->platform('dcipaddr');
     }
 
     public function process()
