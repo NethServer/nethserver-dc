@@ -143,8 +143,15 @@ event_actions('migration-import', qw(
 ));
 
 #
-# nethserver-factory-reset event
+# nethserver-dc-factory-reset event
 #
 event_actions('nethserver-dc-factory-reset', qw(
     nethserver-dc-factory-reset 30
+));
+
+#
+# nethserver-dc-change-ip event
+#
+event_actions('nethserver-dc-change-ip', qw(
+    nethserver-dc-change-ip 30
 ));
