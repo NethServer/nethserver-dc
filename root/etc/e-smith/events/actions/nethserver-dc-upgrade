@@ -1,0 +1,45 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+set -e
+
+event=$1
+nsroot=/var/lib/machines/nsdc
+
+if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
+    echo "[WARNING] nsdc containter not installed. Skipping the update"
+    exit 0
+fi
+
+# Stop the container
+if systemctl -q is-active nsdc 2>/dev/null; then
+    systemctl stop nsdc
+fi
+
+# Upgrade chroot base system
+yum -y --releasever=/ --installroot=${nsroot} update | /usr/libexec/nethserver/ptrack-nsdc-install
+
+# Upgrade samba package
+yum -y --releasever=/ --installroot=${nsroot} update /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+
+# Start the container
+systemctl start nsdc

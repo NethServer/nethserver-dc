@@ -102,6 +102,21 @@ Uninstall nethserver-dc
 
     yum remove nethserver-dc
 
+Upgrade the containter
+----------------------
+
+The upgrade procedure will:
+
+- stop the container
+- upgrade the chroot base system
+- upgrade samba
+- restart the container
+
+To upgrade, execute: ::
+
+    signal-event nethserver-dc-upgrade
+
+
 Changing the IP address of DC
 -----------------------------
 

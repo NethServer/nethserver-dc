@@ -150,6 +150,12 @@ event_actions('nethserver-dc-factory-reset', qw(
 ));
 
 #
+# nethserver-dc-upgrade event
+#
+event_actions('nethserver-dc-upgrade', qw(
+    nethserver-dc-upgrade 30
+));
+
 # nethserver-dc-change-ip event
 #
 event_actions('nethserver-dc-change-ip', qw(
