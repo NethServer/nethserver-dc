@@ -1,6 +1,6 @@
 #!/bin/bash
 
-domain=$(hostname -d)
+domain=$(/sbin/e-smith/config getprop sssd Realm)
 ipaddr=$(/sbin/e-smith/config getprop nsdc IpAddress)
 
 for((a=0; a < 60; a++)); do
