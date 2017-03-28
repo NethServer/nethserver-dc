@@ -2,8 +2,8 @@
 Type=oneshot
 RemainAfterExit=no
 Environment=ADMINPASS=Nethesis,1234
-Environment=DOMAIN={ $workgroup }
-Environment=REALM={ $realm }
+Environment=DOMAIN={ $sssd{'Workgroup'} }
+Environment=REALM={ $sssd{'Realm'} }
 Environment=FWDNS={
     my @servers = split(/,/, $dns{'NameServers'});
     $OUT = $servers[0] || '8.8.4.4';

@@ -1,9 +1,0 @@
-{
-    #
-    # 00workgroup
-    #
-
-    $workgroup =  uc($sssd{'Workgroup'} || (split('\.', $DomainName))[0]);
-    $workgroup = substr($workgroup, 0, 15);
-    '';
-}
