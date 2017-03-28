@@ -1,0 +1,8 @@
+{
+    #
+    # 00realm
+    #
+
+    $realm = uc($sssd{'Realm'} || $DomainName);
+    '';
+}
