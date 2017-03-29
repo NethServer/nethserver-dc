@@ -3,7 +3,9 @@
     # 10dc_realm
     #
 
-    push @hostnames, $SystemName.".".lc($sssd{'Realm'});
+    if(lc($DomainName) ne lc($sssd{'Realm'})) {
+        push @hostnames, $SystemName.".".lc($sssd{'Realm'});
+    }
 
     '';
 }
