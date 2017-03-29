@@ -145,3 +145,24 @@ Example: ::
 Note that the event will fail if the new nsdc ip address is not in the same network
 of the green interface.
 
+Alternate UPN suffix
+--------------------
+
+The default UPN (User Principal Name) suffix for a user account is the SSSD realm, but
+the nsdc containter is configured to use also an extra UPN suffix set
+to the FQDN of the host machine.
+
+Example:
+
+- Host FQDN: nethserver.org
+- SSSD realm: ad.nethserver.org
+- Default UPN: ad.nethserver.org
+- Extra UPN: nethserver.org
+
+If required, the administrator can use RSAT tools to select the extra UPN for a specific user.
+
+
+References:
+
+- https://technet.microsoft.com/en-us/library/cc772007%28v=ws.11%29.aspx
+- https://msdn.microsoft.com/en-us/library/ms680537%28v=vs.85%29.aspx
