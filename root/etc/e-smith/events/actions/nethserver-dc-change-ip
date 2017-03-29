@@ -62,7 +62,7 @@ signal-event nethserver-dnsmasq-save
 systemctl start nsdc
 
 # Update kerberos config
-domain=$(hostname -d | tr '[:lower:]' '[:upper:]')
+domain=$(/sbin/e-smith/config getprop sssd Realm)
 cp -p /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf.ori
 cat << EOF >> /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf 
 [realms]

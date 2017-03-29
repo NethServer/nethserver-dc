@@ -1,2 +1,2 @@
-domain {lc($DomainName)}
+domain { lc($sssd{'Realm'}) }
 nameserver 127.0.0.1
