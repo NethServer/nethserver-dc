@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Check if Samba installed inside the containter needs to be updated
+
+from_dc=$(rpm -qp /usr/lib/nethserver-dc/ns-samba-*.ns7.*.rpm)
+from_nsdc=$(rpm -q --root=/var/lib/machines/nsdc/ ns-samba)
+
+# ns-samba is up-to-date
+if [ $from_dc == $from_nsdc ]; then
+    exit 0
+fi
+
+# get the rpm with newer release
+newer=$(echo -e "$from_dc\n$from_nsdc\n" | sort -V -r | head -n1)
+
+# an update is needed
+if [ $newer == $from_dc ]; then
+   exit 1
+fi
+
+exit 0
