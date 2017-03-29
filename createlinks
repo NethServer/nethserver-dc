@@ -27,6 +27,7 @@ event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
    nethserver-dc-fix5067 30
    nethserver-dc-fixchroot 40
+   nethserver-dc-firststart 95
 ));
 
 event_templates('nethserver-dc-update', '/etc/sysconfig/nsdc');
@@ -40,7 +41,6 @@ event_actions('nethserver-dc-save', qw(
    nethserver-dc-password-policy 97
    nethserver-dc-set-upn 97
    nethserver-dc-createadmins 98
-   nethserver-dc-firststart 99
 ));
 
 my @templates = (qw(
