@@ -1,0 +1,10 @@
+{
+    #
+    # 10dc_realm
+    #
+
+    push @hostnames, $SystemName.".".lc($sssd{'Realm'});
+
+    '';
+}
+
