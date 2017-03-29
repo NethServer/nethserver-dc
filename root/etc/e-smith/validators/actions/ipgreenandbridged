@@ -1,7 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 #
-# Copyright (C) 2016 Nethesis S.r.l.
+# Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -17,28 +17,77 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NethServer.  If not, see COPYING.
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 use strict;
 use esmith::NetworksDB;
-use Net::IPv4Addr qw( :all );
+use esmith::util;
 
-my $force = shift;
-my $nsdcIp = shift;
+my $ip = shift || die("Missing IP argument");
 
-my $ndb = esmith::NetworksDB->open_ro();
-my @greens = $ndb->green();
-my $error = ($force > 0 ? 4 : 3); # no green bridge found
+my $ndb = esmith::NetworksDB->open_ro or die("Could not open Networks DB");
 
-foreach (@greens) {
-    my $type = $_->prop('type') || 'ethernet';
-    if($type eq 'bridge') {
-        $error = 4; # at least one green bridge was found
+sub is_reserved_ip
+{
+    my $checkIp = shift;
+
+    my @reserved = ('127.0.0.1');
+    foreach ($ndb->interfaces()) {
+        my $ipaddr = $_->prop('ipaddr') || next;
+        if ($ipaddr eq $checkIp) {
+            push (@reserved, $ipaddr);
+        }
     }
-    if (($type eq 'bridge' || $force > 0) && ipv4_in_network($_->prop('ipaddr'), $_->prop('netmask'), $nsdcIp, '255.255.255.255')) {
-        exit(0); # SUCCESS!
+
+    if ( grep { $checkIp eq $_ } @reserved )
+    {
+	return 1; # false
     }
+
+    return 0; # true
 }
 
-exit($error);
+sub is_local_ip
+{
+    my $localip = shift;
+
+    # Make sure the IP is local
+    my @interfaces = $ndb->green();
+
+    foreach my $i (@interfaces)
+    {
+        my $ipaddr = $i->prop('ipaddr') || next;
+        my $mask = $i->prop('netmask') || next;
+        if (Net::IPv4Addr::ipv4_in_network(esmith::util::computeLocalNetworkShortSpec($ipaddr,$mask), $localip)) {
+            return 1;
+        }
+    }
+    # Not OK. The IP is not on any of our green networks.
+    return 0;
+}
+
+sub is_free
+{
+    my $ip = shift;
+
+    # Redirect ping output to /dev/null
+    open(my $oldout, '>&STDOUT') || die('Could not dup STDOUT: $!');
+    open(STDOUT, '>', '/dev/null');
+    my $free = system('/bin/ping', '-c', '1', '-w', '2', $ip);
+    open(STDOUT, '>&', $oldout);
+
+    return $free;
+}
+
+# Fail, if ip is reserved or is not in local networks
+if (is_reserved_ip($ip)) { # fail if ip is reserved
+    exit 3;
+} elsif (!is_local_ip($ip)) { # fail if ip is not in green network
+    exit 4;
+} elsif (!is_free($ip)) { # fail is ip is already in use
+    exit 5;
+}
+
+# Success
+exit 0;
