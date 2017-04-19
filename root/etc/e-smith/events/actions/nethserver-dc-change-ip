@@ -56,7 +56,7 @@ for F in $(find /etc/e-smith/events/nethserver-dc-save/templates2expand -type f)
 done
 
 # Apply DNS configuration
-signal-event nethserver-dnsmasq-save
+/sbin/e-smith/signal-event nethserver-dnsmasq-save
 
 # Start nsdc
 systemctl start nsdc
