@@ -11,7 +11,7 @@ Source1:        ns-samba-4.6.2-1.ns7.x86_64.rpm
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
 
-Requires: nethserver-sssd, nethserver-release
+Requires: nethserver-sssd > 1.1.9-1.ns7
 Requires: expect
 Requires(post): systemd
 Requires(preun): systemd
