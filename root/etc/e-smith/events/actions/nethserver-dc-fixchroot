@@ -44,5 +44,5 @@ fi
 # Set ntpd permissions
 uid=$(grep ntp ${nsroot}/etc/passwd | awk -F: '{print $3}')
 chown 0:$uid ${nsroot}/var/lib/samba/ntp_signd/
-chmod 750 ${nsroot} ${nsroot}/var/lib/samba/ntp_signd/
+chmod 750 ${nsroot}/var/lib/samba/ntp_signd/
 
