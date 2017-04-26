@@ -25,8 +25,8 @@ sourceDir=$2
 destDir=/var/lib/machines/nsdc
 errors=0
 realm=$(/sbin/e-smith/config getprop sssd Realm)
-netbiosName=$(cat ${destDir}/etc/hostname)
-netbiosName=${netbiosName%%.${realm}}
+domain=$(hostname -d)
+netbiosName=$(cut -f 1 -d . ${destDir}/etc/hostname)
 workgroup=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb Workgroup)
 serverRole=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb ServerRole)
 
@@ -49,9 +49,12 @@ fi
 rm -f ${destDir}/etc/samba/smb.conf
 find ${destDir}/var/lib/samba/ -type f | xargs -- rm -f
 
-cp --suffix=.migration --backup=simple ${sourceDir}/etc/passwd ${destDir}/etc/passwd || (( errors ++ ))
-cp --suffix=.migration --backup=simple ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
+# backup copies:
+cp -f ${destDir}/etc/passwd{,.migration}
+cp -f ${destDir}/etc/group{,.migration}
 
+cp -f ${sourceDir}/etc/passwd ${destDir}/etc/passwd || (( errors ++ ))
+cp -f ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
@@ -78,7 +81,7 @@ netbios name = ${netbiosName}
 
 # run the classicupgrade
 expect -f - <<EOF || (( errors ++ ))
-spawn /usr/bin/systemd-run -M nsdc -t /usr/bin/samba-tool domain classicupgrade --verbose --dbdir=/srv --use-xattrs=yes --realm=${realm} --dns-backend=SAMBA_INTERNAL /srv/smb.conf
+spawn /usr/bin/systemd-run -M nsdc -t /usr/bin/samba-tool domain classicupgrade --verbose --dbdir=/srv --realm=${realm} --dns-backend=SAMBA_INTERNAL /srv/smb.conf
 expect {
     "Importing users" {
         expect {
@@ -104,7 +107,7 @@ systemctl -M nsdc start samba || (( errors ++ ))
 
 tmppass=$(mktemp /tmp/pw.XXXXXXXX)
 echo "Nethesis,1234" > ${tmppass}
-/etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${realm} ${tmppass} || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${domain} ${tmppass} || (( errors ++ ))
 rm -f ${tmppass}
 
 # add the admin account to Domain Admins group
@@ -138,7 +141,7 @@ exit 0;
 EOF
 
 /etc/e-smith/events/actions/nethserver-dc-join ${event} || (( errors ++ ))
-/etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${realm} || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${domain} || (( errors ++ ))
 
 if (( errors > 0 )); then
     exit 1
