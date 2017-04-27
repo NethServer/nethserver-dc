@@ -17,8 +17,7 @@ ExecStart=/usr/bin/samba-tool domain provision \
     "--option=dns forwarder=${FWDNS}" \
     "--domain=${DOMAIN}" "--realm=${REALM}" \
     "--adminpass=${ADMINPASS}" --server-role=dc \
-    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
-    ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
 EOF1
     } elsif ($nsdc{'ProvisionType'} eq 'ns6upgrade') {
         $OUT = <<'EOF2'
@@ -27,8 +26,7 @@ ExecStart=/usr/bin/samba-tool domain classicupgrade \
     "--realm=${REALM}" \
     --dbdir=/srv /srv/smb.ns6upgrade.conf \
     ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
-    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf \
-    ; /bin/sed "--expression=\x24 a\\\n\\\n[global]\\\nldap server require strong auth=no" -i /etc/samba/smb.conf
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
 EOF2
     }
 
