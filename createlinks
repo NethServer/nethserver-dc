@@ -45,6 +45,7 @@ event_actions('nethserver-dc-save', qw(
 my @templates = (qw(
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
+   /var/lib/machines/nsdc/etc/samba/smb.conf.include
    /var/lib/machines/nsdc/etc/hosts
    /var/lib/machines/nsdc/etc/resolv.conf
    /var/lib/machines/nsdc/etc/ntp.conf
