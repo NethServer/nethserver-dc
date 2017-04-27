@@ -150,7 +150,11 @@ event_actions('nethserver-dc-factory-reset', qw(
 #
 # nethserver-dc-upgrade event
 #
+event_templates('nethserver-dc-upgrade', qw(
+    /var/lib/machines/nsdc/etc/samba/smb.conf.include
+));
 event_actions('nethserver-dc-upgrade', qw(
+    nethserver-dc-fixinclude 20
     nethserver-dc-upgrade 30
 ));
 
