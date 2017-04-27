@@ -72,6 +72,10 @@ event_actions('post-restore-config', qw(
 ));
 event_templates('post-restore-config', @templates);
 
+
+event_actions('interface-update', qw(
+    nethserver-dc-condrestart 71
+));
 event_services('interface-update', qw(
     nsdc start
 ));
