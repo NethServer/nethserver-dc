@@ -35,11 +35,8 @@ if systemctl -q is-active nsdc 2>/dev/null; then
     systemctl stop nsdc
 fi
 
-# Upgrade chroot base system
-yum -y --releasever=/ --installroot=${nsroot} update | /usr/libexec/nethserver/ptrack-nsdc-install
-
-# Upgrade samba package
-yum -y --releasever=/ --installroot=${nsroot} update /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+# Upgrade chroot base system & samba package
+yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
 
 # Start the container
 systemctl start nsdc
