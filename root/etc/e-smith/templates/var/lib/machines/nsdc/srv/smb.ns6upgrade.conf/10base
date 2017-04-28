@@ -5,6 +5,7 @@
 {
     use esmith::NetworksDB;
     $ldapsam_ip = esmith::NetworksDB->open_ro()->get_prop($nsdc{'bridge'}, 'ipaddr') || '127.0.0.1';
+    $workgroup = $sssd{'Workgroup'} || 'WORKGROUP';
     '';
 }
 
@@ -35,3 +36,4 @@ idmap config { $workgroup } : range = 0 - 9999
 idmap config { $workgroup } : backend = nss
 obey pam restrictions = yes
 private dir = /srv
+
