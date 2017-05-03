@@ -61,6 +61,13 @@ done
 # Start nsdc
 systemctl start nsdc
 
+/etc/e-smith/events/actions/nethserver-dc-waitstart
+
+if [ $? -gt 0 ]; then
+    echo "[ERROR] Can't start DC"
+    exit 1
+fi
+
 # Update kerberos config
 domain=$(/sbin/e-smith/config getprop sssd Realm)
 cp -p /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf.ori
@@ -90,8 +97,7 @@ rm -f /var/lib/sss/pubconf/kdcinfo.$domain
 
 # Check the new ip address
 if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null; then
-    echo "[ERROR] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
-    exit
+    echo "[WARN] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
 fi
 
 if ! net ads testjoin >/dev/null; then
