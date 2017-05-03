@@ -4,7 +4,7 @@ fudge  127.127.1.0 stratum 10
 
 driftfile       /var/lib/ntp/ntp.drift
 logfile         /var/log/ntp
-ntpsigndsocket  /usr/local/samba/var/lib/ntp_signd/
+ntpsigndsocket  /var/lib/samba/ntp_signd
 
 # Access control
 # Default restriction: Allow clients only to query the time

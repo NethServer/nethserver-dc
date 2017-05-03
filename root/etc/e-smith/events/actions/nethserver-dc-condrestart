@@ -20,23 +20,24 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e
+target=/var/lib/machines/nsdc/etc/samba/smb.conf.include
+status=$(/sbin/e-smith/config getprop nsdc status)
 
-event=$1
-nsroot=/var/lib/machines/nsdc
-
-if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
-    echo "[WARNING] nsdc containter not installed. Skipping the update"
+if [[ "${status}" != "enabled" ]]; then
     exit 0
 fi
 
-# Stop the container
-if systemctl -q is-active nsdc 2>/dev/null; then
-    systemctl stop nsdc
+if [[ ! -f ${target} ]]; then
+    exit 0
 fi
 
-# Upgrade chroot base system & samba package
-yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+/sbin/e-smith/expand-template ${target}
 
-# Start the container
-systemctl start nsdc
+# Compare modify and change unix timestamps. Restart samba nsdc when the
+# expanded file contents have changed.  See also esmith::templates Perl module.
+if eval $(stat --printf='(( %Y == %Z ))' ${target}); then
+    echo "[NOTICE] nsdc Samba configuration changed. Restarting Samba Domain Controller..."
+    systemctl -M nsdc try-restart samba
+fi
+
+

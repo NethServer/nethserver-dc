@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2016 Nethesis S.r.l.
-# http://www.nethesis.it - support@nethesis.it
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
 #
@@ -17,21 +17,20 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+# along with NethServer.  If not, see COPYING.
 #
 
-set -e
+target=/var/lib/machines/nsdc/etc/samba/smb.conf
 
-cfg=/var/lib/machines/nsdc/etc/samba/smb.conf
-
-if ! [[ -f "${cfg}" ]]; then
-    exit 0
+if [[ ! -f ${target}.include ]]; then
+    exit 0;
 fi
 
-if grep -s -F 'ldap server require strong auth=no' "${cfg}"; then
-    exit 0
+if ! grep -q -F 'smb.conf.include' ${target}; then
+    echo "[NOTICE] Include our smb.conf template in nsdc"
+    echo '
+[global]
+include = /etc/samba/smb.conf.include
+' >> ${target}
 fi
 
-echo "[NOTICE] Apply bugfix #5067 and restart nsdc"
-sed $'$ a\\\n[global]\\\nldap server require strong auth=no' -i "${cfg}"
-systemctl try-restart nsdc

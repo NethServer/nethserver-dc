@@ -1,0 +1,9 @@
+[global]
+dns forwarder = {
+    use esmith::NetworksDB;
+    my $device = $nsdc{'bridge'} || '';
+    my $ndb = esmith::NetworksDB->open_ro();
+
+    $OUT = $ndb->get_prop($device, 'ipaddr') || '';
+}
+

@@ -96,7 +96,9 @@ expect {
 }
 EOF
 
-if [[ $? != 0 ]]; then
+if [[ $? == 0 ]]; then
+    /etc/e-smith/events/actions/nethserver-dc-fixinclude ${event}
+else
     rm -f ${destDir}/etc/samba/smb.conf
 fi
 
