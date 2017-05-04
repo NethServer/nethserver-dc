@@ -33,6 +33,9 @@ systemctl stop sssd
 > /etc/sssd/sssd.conf
 
 for ((attempt = 1;attempt < 4; attempt++)); do
+    # Avoid false "already joined" condition:
+    > /etc/samba/smb.conf
+
     # Join the domain with default credentials
     echo "Nethesis,1234" | /usr/sbin/realm join $(/sbin/e-smith/config getprop sssd Realm)
     if [[ $? == 0 ]]; then
