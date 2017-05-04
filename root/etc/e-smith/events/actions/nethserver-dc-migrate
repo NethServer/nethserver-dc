@@ -58,10 +58,10 @@ cp -f ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
-# Fix worgroup for WS mode
+# Fix workgroup for WS mode
 if [[ "${serverRole}" == "WS" ]]; then
     SystemName=$(/sbin/e-smith/db $sourceDir/home/e-smith/db/configuration get SystemName | tr '[:lower:]' '[:upper:]')
-    python - "${SystemName}" "${workgroup}" << 'EOF'
+    python - "${SystemName}" "${workgroup}" << 'EOF' || (( errors ++ ))
 import sys
 import tdb
 db = tdb.open("/var/lib/machines/nsdc/srv/secrets.tdb")
