@@ -21,3 +21,5 @@
 #
 
 find /var/lib/machines/nsdc/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
+
+systemctl --root=/var/lib/machines/nsdc enable samba.service ntpd.service
