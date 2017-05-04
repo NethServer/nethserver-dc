@@ -27,7 +27,7 @@ errors=0
 realm=$(/sbin/e-smith/config getprop sssd Realm)
 domain=$(hostname -d)
 netbiosName=$(cut -f 1 -d . ${destDir}/etc/hostname)
-workgroup=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb Workgroup)
+workgroup=$(/sbin/e-smith/config getprop sssd Workgroup)
 serverRole=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb ServerRole)
 
 if [[ "${serverRole}" == "PDC" || "${serverRole}" == "WS" ]]; then
@@ -58,12 +58,16 @@ cp -f ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
-if [[ -n "${workgroup}" ]]; then
-    if /sbin/e-smith/config get smb &>/dev/null; then
-        /sbin/e-smith/config setprop smb Workgroup "${workgroup}"
-    else
-        /sbin/e-smith/config set smb '' Workgroup "${workgroup}"
-    fi
+# Fix worgroup for WS mode
+if [[ "${serverRole}" == "WS" ]]; then
+    SystemName=$(/sbin/e-smith/db $sourceDir/home/e-smith/db/configuration get SystemName | tr '[:lower:]' '[:upper:]')
+    python - "${SystemName}" "${workgroup}" << 'EOF'
+import sys
+import tdb
+db = tdb.open("/var/lib/machines/nsdc/srv/secrets.tdb")
+db['SECRETS/SID/%s' % sys.argv[2]] = db['SECRETS/SID/%s' % sys.argv[1]]
+db.close()
+EOF
 fi
 
 # Generate smb.conf
@@ -106,6 +110,8 @@ mv -f ${destDir}/etc/passwd{.migration,}
 mv -f ${destDir}/etc/group{.migration,}
 
 systemctl -M nsdc start samba || (( errors ++ ))
+
+/etc/e-smith/events/actions/nethserver-dc-waitstart || (( errors ++ ))
 
 tmppass=$(mktemp /tmp/pw.XXXXXXXX)
 echo "Nethesis,1234" > ${tmppass}
