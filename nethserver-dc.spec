@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,14 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed May 10 2017 Davide Principi <davide.principi@nethesis.it> - 1.2.1-1
+- Fix home dirs migration
+- Accounts provider guided configuration - NethServer/dev#5253
+- DC: container upgrade procedure - NethServer/dev#5251
+- DC: add NTP server support - NethServer/dev#5249
+- DC: allow changing container IP - NethServer/dev#5248
+- Upgrade from NS 6 via backup and restore - NethServer/dev#5234
+
 * Wed May 10 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.0-1
 - Accounts provider guided configuration - NethServer/dev#5253
 - DC: container upgrade procedure - NethServer/dev#5251
