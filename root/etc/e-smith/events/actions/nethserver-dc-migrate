@@ -150,6 +150,7 @@ EOF
 
 /etc/e-smith/events/actions/nethserver-dc-join ${event} || (( errors ++ ))
 /etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${domain} || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-machine-grants ${event} || (( errors ++ ))
 
 # Migrate user home directories
 for sourceHomeDir in $sourceDir/home/e-smith/files/users/*; do
