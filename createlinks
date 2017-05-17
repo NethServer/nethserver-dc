@@ -27,6 +27,7 @@ event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
    nethserver-dc-fixchroot 40
    nethserver-dc-firststart 95
+   nethserver-dc-machine-grants 96
 ));
 
 event_templates('nethserver-dc-update', '/etc/sysconfig/nsdc');
@@ -40,6 +41,7 @@ event_actions('nethserver-dc-save', qw(
    nethserver-dc-password-policy 97
    nethserver-dc-set-upn 97
    nethserver-dc-createadmins 98
+   nethserver-dc-machine-grants 98
 ));
 
 my @templates = (qw(
@@ -83,7 +85,10 @@ event_services('interface-update', qw(
 #--------------------------------------------------
 # actions for user-create
 #--------------------------------------------------
-event_link("nethserver-dc-user-create", "user-create", "40");
+event_actions('user-create', qw(
+    nethserver-dc-user-create 40
+    nethserver-dc-sync-upn 50
+));
 
 #--------------------------------------------------
 # actions for user-delete

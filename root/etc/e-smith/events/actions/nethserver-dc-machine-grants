@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Grant Account Operator privilege to the local machine account
+
+sAMAccountName=$(hostname -s | cut --bytes=-15 | tr '[:lower:]' '[:upper:]')\$
+
+expect &>/dev/null <<EOF
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "Account Operators"
+expect {
+    -nocase -ex "${sAMAccountName}" { exit 0 } 
+    eof { exit 3 }
+}
+EOF
+
+if [[ $? == 3 ]]; then 
+    expect <<EOF
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Account Operators" "${sAMAccountName}"
+expect "Added members" { exit 0 }
+exit 3
+EOF
+    if [[ $? == 0 ]]; then
+        echo "[NOTICE] Added machine account to Account Operators group"
+        /etc/e-smith/events/actions/nethserver-dc-sync-upn $*
+    fi
+fi
+

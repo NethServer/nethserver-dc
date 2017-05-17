@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Sync userPrincipalName attributes with domain suffix
+
+use strict;
+use NethServer::SSSD;
+use NethServer::LdapClient;
+use NethServer::AccountsList;
+use Sys::Hostname;
+
+my $event = shift;
+
+my $sssd = NethServer::SSSD->new();
+
+if( ! $sssd->isLocalProvider()) {
+    # nothing to do on remote providers
+    exit(0);
+}
+
+my $ldap = NethServer::LdapClient::connect($sssd);
+my $al = NethServer::AccountsList->new($sssd);
+
+my $errors = 0;
+my ($systemName, $domainName) = split(/\./, Sys::Hostname::hostname(), 2);
+
+NethServer::LdapClient::paged_search($sssd, $ldap,
+    'base' => $sssd->userDN(),
+    'scope' => 'subtree',
+    'deref' => 'never',
+    'filter' => "(&(objectClass=user)(objectCategory=person)(!(userPrincipalName=*\@$domainName)))",
+    'callback' => \&_cb_fix_upn
+);
+
+sub _cb_fix_upn
+{
+    my $message = shift;
+    my $entry = shift;
+
+    my $user = $entry->get_value('sAMAccountName');
+    if($al->is_system_user($entry->get_value('objectSid')) || $al->is_system_user($user)) {
+        return;
+    }
+
+    my $result = $ldap->modify($entry->dn(), 'replace' => {'userPrincipalName' => sprintf('%s@%s', $user, $domainName)});
+    if($result->is_error()) {
+        $errors ++;
+    }
+}
+
+exit($errors > 0 ? 1 : 0);
