@@ -35,6 +35,8 @@ systemctl stop sssd
 for ((attempt = 1;attempt < 4; attempt++)); do
     # Avoid false "already joined" condition:
     > /etc/samba/smb.conf
+    # Truncate old realm configuration
+    sed -i -r -e '/default_realm = / d' -e '/^\[(domain_realm|realms)\]/,$ d' /etc/krb5.conf
 
     # Join the domain with default credentials
     echo "Nethesis,1234" | /usr/sbin/realm join $(/sbin/e-smith/config getprop sssd Realm)
