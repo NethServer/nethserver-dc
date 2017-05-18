@@ -22,6 +22,12 @@
 
 # Grant Account Operator privilege to the local machine account
 
+# Run only if we are a local accounts provider:
+perl -MNethServer::SSSD -e 'exit(NethServer::SSSD->new()->isLocalProvider() ? 0 : 1);'
+if [[ $? != 0 ]]; then
+    exit 0
+fi
+
 sAMAccountName=$(hostname -s | cut --bytes=-15 | tr '[:lower:]' '[:upper:]')\$
 
 expect &>/dev/null <<EOF
