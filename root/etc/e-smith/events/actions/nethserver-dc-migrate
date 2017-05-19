@@ -102,6 +102,7 @@ EOF
 
 if [[ $? == 0 ]]; then
     /etc/e-smith/events/actions/nethserver-dc-fixinclude ${event}
+    echo -e '\n# enable legacy devices support (badlock vulnerability):\nntlm auth = yes' >> ${destDir}/etc/samba/smb.conf
 else
     rm -f ${destDir}/etc/samba/smb.conf
 fi
