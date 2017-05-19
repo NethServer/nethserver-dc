@@ -23,6 +23,7 @@ ExecStart=/usr/bin/samba-tool domain classicupgrade \
     "--realm=${REALM}" \
     --dbdir=/srv /srv/smb.ns6upgrade.conf \
     ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
+    ; /bin/bash /srv/post-provision.sh ns6upgrade \
     ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
 EOF2
     } elsif ($nsdc{'ProvisionType'} eq 'sme8migration') {
