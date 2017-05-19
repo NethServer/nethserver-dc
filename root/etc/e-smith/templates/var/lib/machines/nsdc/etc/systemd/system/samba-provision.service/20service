@@ -19,6 +19,7 @@ EOF1
         $OUT = <<'EOF2'
 ExecStart=/usr/bin/samba-tool domain classicupgrade \
     "--option=include = /etc/samba/smb.conf.include" \
+    "--option=ntlm auth = yes" \
     "--realm=${REALM}" \
     --dbdir=/srv /srv/smb.ns6upgrade.conf \
     ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
