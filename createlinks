@@ -53,6 +53,7 @@ my @templates = (qw(
    /var/lib/machines/nsdc/etc/ntp.conf
    /var/lib/machines/nsdc/etc/systemd/system/samba-provision.service
    /var/lib/machines/nsdc/srv/smb.ns6upgrade.conf
+   /var/lib/machines/nsdc/srv/post-provision.sh
    /etc/sysconfig/nsdc
    /etc/hosts
 ));
