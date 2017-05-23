@@ -41,20 +41,15 @@ rm -f ${destDir}/srv/*
 
 /sbin/e-smith/signal-event nethserver-sssd-leave || (( errors ++ ))
 
-if systemctl --quiet -M nsdc is-active samba; then
-    systemctl -M nsdc stop samba || (( errors ++ ))
-    mv -f ${destDir}/etc/samba/smb.conf{,.migration}
+if systemctl --quiet is-active nsdc; then
+    systemctl stop nsdc || (( errors ++ ))
 fi
 
 rm -f ${destDir}/etc/samba/smb.conf
-find ${destDir}/var/lib/samba/ -type f | xargs -- rm -f
+find ${destDir}/var/lib/samba/ -type f -delete
 
-# backup copies:
-cp -f ${destDir}/etc/passwd{,.migration}
-cp -f ${destDir}/etc/group{,.migration}
-
-cp -f ${sourceDir}/etc/passwd ${destDir}/etc/passwd || (( errors ++ ))
-cp -f ${sourceDir}/etc/group ${destDir}/etc/group || (( errors ++ ))
+cp -f ${sourceDir}/etc/passwd ${destDir}/etc/passwd.migration || (( errors ++ ))
+cp -f ${sourceDir}/etc/group ${destDir}/etc/group.migration || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
@@ -70,7 +65,7 @@ db.close()
 EOF
 fi
 
-# Generate smb.conf
+# Generate smb.conf for the provision procedure:
 echo "
 [global]
 domain logons = yes
@@ -81,55 +76,12 @@ smb passwd file = /srv/smbpasswd
 workgroup = ${workgroup}
 netbios name = ${netbiosName}
 
-" > ${destDir}/srv/smb.conf
+" > ${destDir}/srv/smb.sme8migration.conf
 
-# run the classicupgrade
-expect -f - <<EOF || (( errors ++ ))
-spawn /usr/bin/systemd-run -M nsdc -t /usr/bin/samba-tool domain classicupgrade --verbose --dbdir=/srv --realm=${realm} --dns-backend=SAMBA_INTERNAL /srv/smb.conf
-expect {
-    "Importing users" {
-        expect {
-            eof {
-                exit 0
-            }
-        }
-    }
-    eof {
-        exit 1
-    }
-}
-EOF
-
-if [[ $? == 0 ]]; then
-    /etc/e-smith/events/actions/nethserver-dc-fixinclude ${event}
-    echo -e '\n# enable legacy devices support (badlock vulnerability):\nntlm auth = yes' >> ${destDir}/etc/samba/smb.conf
-else
-    rm -f ${destDir}/etc/samba/smb.conf
-fi
-
-mv -f ${destDir}/etc/passwd{.migration,}
-mv -f ${destDir}/etc/group{.migration,}
-
-systemctl -M nsdc start samba || (( errors ++ ))
-
-/etc/e-smith/events/actions/nethserver-dc-waitstart || (( errors ++ ))
-
-tmppass=$(mktemp /tmp/pw.XXXXXXXX)
-echo "Nethesis,1234" > ${tmppass}
-/etc/e-smith/events/actions/nethserver-dc-password-set ${event} administrator@${domain} ${tmppass} || (( errors ++ ))
-rm -f ${tmppass}
-
-# add the admin account to Domain Admins group
-expect <<EOF || (( errors ++ ))
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Domain Admins" "admin"
-expect "Added members" { exit 0 }
-exit 3
-EOF
-
-perl -- - $event $sourceDir <<'EOF' || (( errors ++ ))
+# prepare the list of groups for the provision procedure:
+perl -- - $event $sourceDir > ${destDir}/srv/groups.list <<'EOF' || (( errors ++ ))
 use strict;
 use esmith::AccountsDB;
-use esmith::event;
 
 my $event = shift;
 my $sourceDir = shift;
@@ -138,20 +90,13 @@ my $errors = 0;
 my $db = esmith::AccountsDB->open_ro($sourceDir . "/home/e-smith/db/accounts") || die("[ERROR] Could not open source AccountsDB\n");
 
 foreach ($db->groups()) {
-    if( ! esmith::event::event_signal('group-create', $_->key, split(/,/, $_->prop('Members'))) ) {
-        $errors ++;
-    }
+    print $_->key . "\t" . $_->prop('Members') . "\n";
 }
-
-if($errors) {
-    exit 1;
-}
-exit 0;
 EOF
 
-/etc/e-smith/events/actions/nethserver-dc-join ${event} || (( errors ++ ))
+/sbin/e-smith/config setprop nsdc ProvisionType sme8migration
+/sbin/e-smith/signal-event nethserver-dc-save || (( errors ++ ))
 /etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${domain} || (( errors ++ ))
-/etc/e-smith/events/actions/nethserver-dc-machine-grants ${event} || (( errors ++ ))
 
 # Migrate user home directories
 for sourceHomeDir in $sourceDir/home/e-smith/files/users/*; do
