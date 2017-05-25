@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.2.2
+Version: 1.2.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,10 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu May 25 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
+- Migrate LogonDrive prop - Bug NethServer/dev#5290
+- Upgrade ns-samba to 4.6.4 (CVE-2017-7494)
+
 * Mon May 22 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.2-1
 - Unable to validate Samba domain password - Bug NethServer/dev#5289
 - Default userPrincipalName is not an email address - Bug NethServer/dev#5284
