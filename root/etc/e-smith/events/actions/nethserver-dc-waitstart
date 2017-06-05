@@ -4,7 +4,8 @@ domain=$(/sbin/e-smith/config getprop sssd Realm)
 ipaddr=$(/sbin/e-smith/config getprop nsdc IpAddress)
 
 for((a=0; a < 60; a++)); do
-    if host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null; then
+    if host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null \
+       && ldapsearch -ZZ -h "${ipaddr}" -D '' -w '' -b '' -s base &>/dev/null; then
         exit 0;
     fi
     sleep 5;
