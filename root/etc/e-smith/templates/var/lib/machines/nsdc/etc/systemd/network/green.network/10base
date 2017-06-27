@@ -10,11 +10,14 @@ Name=host0
     $OUT = "[Network]\n";
     $OUT .= "Address=" . $nsdc{'IpAddress'} . '/' . ipv4_msk2cidr($ndb->get_prop($bridge, 'netmask')). "\n\n";
 
-    $gateway=$ndb->get_prop($bridge, 'gateway');
-    if($gateway) {
-        $OUT .= "[Route]\n";
-        $OUT .= "Gateway=$gateway\n";
+    my $gateway = $ndb->get_prop($bridge, 'gateway');
+    if(!$gateway || scalar $ndb->red()) {
+        # if the gateway is defined on a different network/interface, set our green IP:
+        $gateway = $ndb->get_prop($bridge, 'ipaddr');
     }
+    
+    $OUT .= "[Route]\n";
+    $OUT .= "Gateway=$gateway\n";
 }
 
 
