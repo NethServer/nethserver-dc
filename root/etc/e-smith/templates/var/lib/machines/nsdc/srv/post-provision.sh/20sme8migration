@@ -1,0 +1,16 @@
+#
+# 20sme8migration
+#
+if [[ "$1" == "sme8migration" ]]; then
+    samba-tool user setpassword administrator --newpassword=Nethesis,1234
+    samba-tool group addmembers "Domain Admins" "admin"
+    cat /srv/groups.list | (
+        IFS=$'\t'
+        while read GROUP MEMBERS; do
+            echo "[NOTICE] Importing group $GROUP"
+            samba-tool group add "$GROUP"
+            samba-tool group addmembers "$GROUP" "$MEMBERS"
+        done
+    )
+fi
+

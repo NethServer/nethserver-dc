@@ -1,0 +1,14 @@
+#
+# 60homeDrive
+#
+if [[ "$1" == "ns6upgrade" || "$1" == "sme8migration" ]]; then
+    shopt -s nocasematch
+    for USER in $(samba-tool user list); do
+        if [[ "$USER" =~ ^(Administrator|Guest|krbtgt|.*\$)$ ]]; then
+            continue
+        fi
+        net sam set homedir "$USER" "\\\\\\\\{ $SystemName }\\$USER"
+        net sam set homedrive "$USER" "{ $smb{'LogonDrive'} || 'Z:' }"
+    done
+    shopt -u nocasematch
+fi

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2016 Nethesis S.r.l.
+# Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -20,24 +20,23 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e -o pipefail
+set -e
 
+event=$1
 nsroot=/var/lib/machines/nsdc
 
-function cleanup ()
-{
-    rm -rf ${nsroot}
-    exit 1
-}
-
 if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
-    trap cleanup ERR
-    mkdir -p ${nsroot}/etc/yum/vars
-    mkdir -p ${nsroot}/var/log/journal
-    mkdir -p ${nsroot}/etc/systemd/network
-    cp -f /etc/yum/vars/* ${nsroot}/etc/yum/vars
-    rpm --root=${nsroot} --import /etc/pki/rpm-gpg/*
-    yum -y --releasever=/ --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd bind-utils ntp | /usr/libexec/nethserver/ptrack-nsdc-install
-    rm -f ${nsroot}/etc/krb5.conf
-    systemctl enable machines.target
+    echo "[WARNING] nsdc containter not installed. Skipping the update"
+    exit 0
 fi
+
+# Stop the container
+if systemctl -q is-active nsdc 2>/dev/null; then
+    systemctl stop nsdc
+fi
+
+# Upgrade chroot base system & samba package
+yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+
+# Start the container
+systemctl start nsdc

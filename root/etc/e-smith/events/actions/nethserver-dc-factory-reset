@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (C) 2016 Nethesis S.r.l.
+# Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -20,24 +20,31 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e -o pipefail
+event=$1
+errors=0
 
-nsroot=/var/lib/machines/nsdc
-
-function cleanup ()
+function count_errors ()
 {
-    rm -rf ${nsroot}
-    exit 1
+    (( errors ++ ))
 }
 
-if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
-    trap cleanup ERR
-    mkdir -p ${nsroot}/etc/yum/vars
-    mkdir -p ${nsroot}/var/log/journal
-    mkdir -p ${nsroot}/etc/systemd/network
-    cp -f /etc/yum/vars/* ${nsroot}/etc/yum/vars
-    rpm --root=${nsroot} --import /etc/pki/rpm-gpg/*
-    yum -y --releasever=/ --installroot=${nsroot} install /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm centos-release systemd-networkd bind-utils ntp | /usr/libexec/nethserver/ptrack-nsdc-install
-    rm -f ${nsroot}/etc/krb5.conf
-    systemctl enable machines.target
+trap count_errors ERR
+
+/sbin/e-smith/config setprop sssd Provider none status disabled AdDns ''
+/sbin/e-smith/signal-event nethserver-sssd-leave
+/sbin/e-smith/signal-event nethserver-dnsmasq-save
+
+if systemctl -q is-active nsdc; then
+    systemctl stop nsdc
 fi
+
+if systemctl -q is-enabled nsdc; then
+    systemctl disable nsdc
+fi
+
+rm -vf /var/lib/machines/nsdc/etc/samba/smb.conf
+find /var/lib/machines/nsdc/var/lib/samba/ -type f | xargs -- rm -vf
+
+/sbin/e-smith/config setprop nsdc status disabled IpAddress ''
+
+exit $errors

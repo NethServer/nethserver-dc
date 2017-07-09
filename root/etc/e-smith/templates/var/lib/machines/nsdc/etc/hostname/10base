@@ -1,1 +1,1 @@
-{$nsdcname}.{lc($DomainName)}
+{$nsdcname}.{lc($sssd{'Realm'})}

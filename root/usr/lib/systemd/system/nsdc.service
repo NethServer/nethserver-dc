@@ -6,6 +6,8 @@ Before=machines.target
 Before=sssd.service
 After=network.service
 Wants=network.service
+ConditionPathExists=!/var/run/.nethserver-fixnetwork
+ConditionPathExists=/var/lib/machines/nsdc/etc/centos-release
 
 [Service]
 Environment=OPTIONS=

@@ -1,17 +1,17 @@
 Name:           nethserver-dc
-Version: 1.0.6
+Version: 1.2.5
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
 License:        GPLv3+
 URL: %{url_prefix}/%{name}
 Source0:        %{name}-%{version}.tar.gz
-Source1:        ns-samba-1.0.0-1.ns7.x86_64.rpm
+Source1:        https://github.com/NethServer/ns-samba/releases/download/4.6.5/ns-samba-4.6.5-1.ns7.x86_64.rpm
 
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
 
-Requires: nethserver-sssd, nethserver-release
+Requires: nethserver-sssd > 1.1.9-1.ns7
 Requires: expect
 Requires(post): systemd
 Requires(preun): systemd
@@ -54,10 +54,56 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %doc README.rst
 %dir %{_nseventsdir}/%{name}-update
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
-%attr(0755,root,root) /etc/nethserver/todos.d/40nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Jul 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.5-1
+- Cannot connect DC sysvol share on gateway - Bug NethServer/dev#5321
+- Upgrade to Samba 4.6.5
+
+* Thu Jun 08 2017 Davide Principi <davide.principi@nethesis.it> - 1.2.4-1
+- Realm join fails with poor entropy - Bug NethServer/dev#5308
+
+* Thu May 25 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
+- Migrate LogonDrive prop - Bug NethServer/dev#5290
+- Upgrade ns-samba to 4.6.4 (CVE-2017-7494)
+
+* Mon May 22 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.2-1
+- Unable to validate Samba domain password - Bug NethServer/dev#5289
+- Default userPrincipalName is not an email address - Bug NethServer/dev#5284
+
+* Wed May 10 2017 Davide Principi <davide.principi@nethesis.it> - 1.2.1-1
+- Fix home dirs migration
+- Accounts provider guided configuration - NethServer/dev#5253
+- DC: container upgrade procedure - NethServer/dev#5251
+- DC: add NTP server support - NethServer/dev#5249
+- DC: allow changing container IP - NethServer/dev#5248
+- Upgrade from NS 6 via backup and restore - NethServer/dev#5234
+
+* Wed May 10 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.0-1
+- Accounts provider guided configuration - NethServer/dev#5253
+- DC: container upgrade procedure - NethServer/dev#5251
+- DC: add NTP server support - NethServer/dev#5249
+- DC: allow changing container IP - NethServer/dev#5248
+- Upgrade from NS 6 via backup and restore - NethServer/dev#5234
+
+* Mon Mar 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.3-1
+- Migration from sme8 - NethServer/dev#5196
+
+* Mon Feb 20 2017 Davide Principi <davide.principi@nethesis.it> - 1.1.2-1
+- AD local provider: annoying task completed with errors notification - Bug NethServer/dev#5220
+
+* Mon Jan 16 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.1-1
+- DC: restore configuration fails - Bug NethServer/dev#5188
+
+* Thu Dec 15 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.0-1
+- Set the members of administrators group - NethServer/dev#5168
+- Store locally AD credentials - NethServer/dev#5165
+- Default "admins" config DB record - NethServer/dev#5157
+
+* Mon Oct 17 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.7-1
+- Display NetBIOS domain name on DC configuration page - NethServer/dev#5124
+
 * Mon Oct 10 2016 Davide Principi <davide.principi@nethesis.it> - 1.0.6-1
 - Controller provisioning fails with long domain name - Bug NethServer/dev#5116
 

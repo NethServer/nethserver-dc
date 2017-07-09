@@ -25,25 +25,40 @@ use esmith::Build::CreateLinks  qw(:all);
 
 event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
-   nethserver-dc-fix5067 30
+   nethserver-dc-fixchroot 40
+   nethserver-dc-firststart 95
+   nethserver-dc-machine-grants 96
 ));
 
+event_templates('nethserver-dc-update', '/etc/sysconfig/nsdc');
+
 event_actions('nethserver-dc-save', qw(
-   nethserver-dc-install 01
-   nethserver-dc-create-bridge 02
+   nethserver-dc-create-bridge 01
+   nethserver-dc-install 02
+   nethserver-dc-provision 10
    nethserver-dc-waitstart 95
    nethserver-dc-join 96
    nethserver-dc-password-policy 97
+   nethserver-dc-set-upn 97
+   nethserver-dc-createadmins 98
+   nethserver-dc-machine-grants 98
 ));
 
-event_templates('nethserver-dc-save', qw(
+my @templates = (qw(
    /var/lib/machines/nsdc/etc/systemd/network/green.network
    /var/lib/machines/nsdc/etc/hostname
+   /var/lib/machines/nsdc/etc/samba/smb.conf.include
    /var/lib/machines/nsdc/etc/hosts
    /var/lib/machines/nsdc/etc/resolv.conf
-   /var/lib/machines/nsdc/etc/sysconfig/samba-provision
+   /var/lib/machines/nsdc/etc/ntp.conf
+   /var/lib/machines/nsdc/etc/systemd/system/samba-provision.service
+   /var/lib/machines/nsdc/srv/smb.ns6upgrade.conf
+   /var/lib/machines/nsdc/srv/post-provision.sh
    /etc/sysconfig/nsdc
+   /etc/hosts
 ));
+
+event_templates('nethserver-dc-save', @templates);
 
 event_services('nethserver-dc-save', qw(
    nsdc restart
@@ -54,12 +69,27 @@ event_services('nethserver-dc-save', qw(
 event_link("nethserver-dc-pre-backup" , "pre-backup-config", "40");
 event_link("nethserver-dc-post-backup", "post-backup-config", "40");
 event_link("nethserver-dc-pre-restore", "pre-restore-config", "40");
-event_link("nethserver-dc-post-restore", "post-restore-config", "40");
+event_actions('post-restore-config', qw(
+    nethserver-dc-install 01
+    nethserver-dc-post-restore 40
+));
+event_templates('post-restore-config', @templates);
+
+
+event_actions('interface-update', qw(
+    nethserver-dc-condrestart 71
+));
+event_services('interface-update', qw(
+    nsdc start
+));
 
 #--------------------------------------------------
 # actions for user-create
 #--------------------------------------------------
-event_link("nethserver-dc-user-create", "user-create", "40");
+event_actions('user-create', qw(
+    nethserver-dc-user-create 40
+    nethserver-dc-sync-upn 50
+));
 
 #--------------------------------------------------
 # actions for user-delete
@@ -113,7 +143,32 @@ event_link("nethserver-dc-group-delete", "group-delete", "40");
 #--------------------------------------------------
 event_link("nethserver-dc-group-modify", "group-modify", "40");
 
+#
+# migration-import event
+#
+event_actions('migration-import', qw(
+      nethserver-dc-migrate 25
+));
 
-validator_actions('dcipaddr', qw(
-    ipgreenandbridged 20
+#
+# nethserver-dc-factory-reset event
+#
+event_actions('nethserver-dc-factory-reset', qw(
+    nethserver-dc-factory-reset 30
+));
+
+#
+# nethserver-dc-upgrade event
+#
+event_templates('nethserver-dc-upgrade', @templates);
+
+event_actions('nethserver-dc-upgrade', qw(
+    nethserver-dc-fixinclude 20
+    nethserver-dc-upgrade 30
+));
+
+# nethserver-dc-change-ip event
+#
+event_actions('nethserver-dc-change-ip', qw(
+    nethserver-dc-change-ip 30
 ));

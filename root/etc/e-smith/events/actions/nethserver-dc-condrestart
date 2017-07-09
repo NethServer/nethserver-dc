@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+targets="\
+    /var/lib/machines/nsdc/etc/samba/smb.conf.include \
+    /var/lib/machines/nsdc/etc/systemd/network/green.network \
+"
+
+needRestart=0
+status=$(/sbin/e-smith/config getprop nsdc status)
+
+if [[ "${status}" != "enabled" ]]; then
+    exit 0
+fi
+
+for target in ${targets}; do
+
+    if [[ ! -f ${target} ]]; then
+        continue
+    fi
+
+    /sbin/e-smith/expand-template ${target}
+
+    # Compare modify and change unix timestamps. Restart samba nsdc when the
+    # expanded file contents have changed.  See also esmith::templates Perl module.
+    if eval $(stat --printf='(( %Y == %Z ))' ${target}); then
+        echo "[NOTICE] ${target} has changed"
+        ((needRestart++))
+    fi
+done
+
+if (($needRestart > 0)); then
+    echo "[NOTICE] nsdc Samba configuration changed. Restarting Samba Domain Controller..."
+    systemctl try-restart nsdc
+fi

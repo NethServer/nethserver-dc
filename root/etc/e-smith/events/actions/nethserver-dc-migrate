@@ -1,0 +1,136 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+event=${1:?missing event argument}
+sourceDir=${2:?missing sourceDir argument}
+destDir=/var/lib/machines/nsdc
+errors=0
+realm=$(/sbin/e-smith/config getprop sssd Realm)
+domain=$(hostname -d)
+netbiosName=$(cut -f 1 -d . ${destDir}/etc/hostname)
+workgroup=$(/sbin/e-smith/config getprop sssd Workgroup)
+serverRole=$(/sbin/e-smith/db ${sourceDir}/home/e-smith/db/configuration getprop smb ServerRole)
+
+if [[ "${serverRole}" == "PDC" || "${serverRole}" == "WS" ]]; then
+    echo "[NOTICE] Upgrading role ${serverRole} to Samba Active Directory DC..."
+else
+    echo "[WARNING] The role ${serverRole:-UNKNOWN} cannot be upgraded to Samba Active Directory DC. Skipped!"
+    exit 0
+fi
+
+rm -f ${destDir}/srv/*
+
+/sbin/e-smith/signal-event nethserver-sssd-leave || (( errors ++ ))
+
+if systemctl --quiet is-active nsdc; then
+    systemctl stop nsdc || (( errors ++ ))
+fi
+
+rm -f ${destDir}/etc/samba/smb.conf
+find ${destDir}/var/lib/samba/ -type f -delete
+
+cp -f ${sourceDir}/etc/passwd ${destDir}/etc/passwd.migration || (( errors ++ ))
+cp -f ${sourceDir}/etc/group ${destDir}/etc/group.migration || (( errors ++ ))
+cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
+cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
+
+# Fix workgroup for WS mode
+if [[ "${serverRole}" == "WS" ]]; then
+    SystemName=$(/sbin/e-smith/db $sourceDir/home/e-smith/db/configuration get SystemName | tr '[:lower:]' '[:upper:]')
+    python - "${SystemName}" "${workgroup}" << 'EOF' || (( errors ++ ))
+import sys
+import tdb
+db = tdb.open("/var/lib/machines/nsdc/srv/secrets.tdb")
+db['SECRETS/SID/%s' % sys.argv[2]] = db['SECRETS/SID/%s' % sys.argv[1]]
+db.close()
+EOF
+fi
+
+# Generate smb.conf for the provision procedure:
+echo "
+[global]
+domain logons = yes
+domain master = yes
+passdb backend = smbpasswd:/srv/smbpasswd
+private dir = /srv
+smb passwd file = /srv/smbpasswd
+workgroup = ${workgroup}
+netbios name = ${netbiosName}
+
+" > ${destDir}/srv/smb.sme8migration.conf
+
+# prepare the list of groups for the provision procedure:
+perl -- - $event $sourceDir > ${destDir}/srv/groups.list <<'EOF' || (( errors ++ ))
+use strict;
+use esmith::AccountsDB;
+
+my $event = shift;
+my $sourceDir = shift;
+my $errors = 0;
+
+my $db = esmith::AccountsDB->open_ro($sourceDir . "/home/e-smith/db/accounts") || die("[ERROR] Could not open source AccountsDB\n");
+
+foreach ($db->groups()) {
+    print $_->key . "\t" . $_->prop('Members') . "\n";
+}
+EOF
+
+/sbin/e-smith/config setprop nsdc ProvisionType sme8migration
+/sbin/e-smith/signal-event nethserver-dc-save || (( errors ++ ))
+/etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${domain} || (( errors ++ ))
+
+# Migrate user home directories
+for sourceHomeDir in $sourceDir/home/e-smith/files/users/*; do
+
+    if [[ ! -d "$sourceHomeDir" ]]; then
+        continue
+    fi
+
+    userName=$(basename $sourceHomeDir)
+
+    if  ! getent passwd $userName >/dev/null ; then
+        echo "[ERROR] Could not find $userName in Unix user DB"
+        (( errors ++ ))
+        continue
+    fi
+
+    homeDir=$(eval echo "~$userName")
+
+    perl -MNethServer::Migrate -f - "$sourceHomeDir" "$homeDir" <<'EOF'
+mkdir $ARGV[1];
+chmod 0700, $ARGV[1];
+if(NethServer::Migrate::migrateDir($ARGV[0], $ARGV[1])) {
+    warn("[NOTICE] Migrated home directory $homeDir\n");
+} else {
+    warn("[ERROR] Could not migrate home directory $homeDir\n");
+    exit(1);
+}
+EOF
+
+    chown -R "$userName:domain users" $homeDir || (( errors ++ ))
+done
+
+if (( errors > 0 )); then
+    exit 1
+fi
+
+exit 0

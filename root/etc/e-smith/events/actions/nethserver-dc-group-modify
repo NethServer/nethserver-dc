@@ -31,11 +31,17 @@ my $errors = 0;
 $groupName =~ s/@.*//;
 
 my @newmembers = @ARGV;
+my @oldmembers;
 
 #get group users
-my $out = qx(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "$groupName"; expect { exit 0 }');
+open(PS, "expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers \"$groupName\"; expect { exit 0 }' |");
+while ( <PS> )
+{
+    $_ =~  s/^\s+//;;
+    $_ =~ s/\s+$//;
+    push(@oldmembers, $_);
+}
 
-my @oldmembers = split (" ",$out);
 my @membersToAdd = ();
 my @membersToRemove = ();
 my $membersUnchanged = '';

@@ -1,0 +1,51 @@
+[Service]
+Type=oneshot
+RemainAfterExit=no
+Environment=ADMINPASS=Nethesis,1234
+Environment=DOMAIN={ $sssd{'Workgroup'} }
+Environment=REALM={ $sssd{'Realm'} }
+{
+    $OUT = "ExecStart=/bin/true";
+
+    if($nsdc{'ProvisionType'} eq 'newdomain') {
+        $OUT = <<'EOF1'
+ExecStart=/usr/bin/samba-tool domain provision \
+    "--option=include = /etc/samba/smb.conf.include" \
+    "--domain=${DOMAIN}" "--realm=${REALM}" \
+    "--adminpass=${ADMINPASS}" --server-role=dc \
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
+EOF1
+    } elsif ($nsdc{'ProvisionType'} eq 'ns6upgrade') {
+        $OUT = <<'EOF2'
+ExecStart=/usr/bin/samba-tool domain classicupgrade \
+    "--option=include = /etc/samba/smb.conf.include" \
+    "--option=ntlm auth = yes" \
+    "--realm=${REALM}" \
+    --dbdir=/srv /srv/smb.ns6upgrade.conf \
+    ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
+    ; /bin/bash /srv/post-provision.sh ns6upgrade \
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
+EOF2
+    } elsif ($nsdc{'ProvisionType'} eq 'sme8migration') {
+        $OUT = <<'EOF3'
+ExecStartPre=/bin/cp -vf /etc/passwd /etc/passwd.provision \
+    ; /bin/cp -vf /etc/group /etc/group.provision \
+    ; /bin/mv -vf /etc/passwd.migration /etc/passwd \
+    ; /bin/mv -vf /etc/group.migration /etc/group
+
+ExecStart=/usr/bin/samba-tool domain classicupgrade \
+        "--option=include = /etc/samba/smb.conf.include" \
+        "--option=ntlm auth = yes" \
+        "--realm=${REALM}" \
+        --dbdir=/srv /srv/smb.sme8migration.conf
+
+ExecStartPost=/bin/mv -v /etc/passwd.provision /etc/passwd \
+    ; /bin/mv -v /etc/group.provision /etc/group \
+    ; /bin/bash /srv/post-provision.sh sme8migration \
+    ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
+EOF3
+    }
+
+}
+
+
