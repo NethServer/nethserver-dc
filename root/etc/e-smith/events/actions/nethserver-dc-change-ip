@@ -52,7 +52,7 @@ fi
 
 # Expand the templates from nethserver-dc-save even
 for F in $(find /etc/e-smith/events/nethserver-dc-save/templates2expand -type f); do
-    expand-template ${F##/etc/e-smith/events/nethserver-dc-save/templates2expand}
+    /sbin/e-smith/expand-template ${F##/etc/e-smith/events/nethserver-dc-save/templates2expand}
 done
 
 # Apply DNS configuration
