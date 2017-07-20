@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.2.5
+Version: 1.2.6
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Jul 20 2017 Davide Principi <davide.principi@nethesis.it> - 1.2.6-1
+- Web interface for changing nsdc IP address - NethServer/dev#5330
+
 * Thu Jul 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.5-1
 - Cannot connect DC sysvol share on gateway - Bug NethServer/dev#5321
 - Upgrade to Samba 4.6.5
