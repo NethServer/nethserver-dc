@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+status=$(/sbin/e-smith/config getprop nsdc status)
+
+if [[ "${status}" == "disabled" ]]; then
+    exit 0
+fi
+
+current=$(rpm -q --queryformat='%{VERSION}\n' --root=/var/lib/machines/nsdc/ ns-samba)
+available=$(rpm -qp --queryformat='%{VERSION}\n' /usr/lib/nethserver-dc/ns-samba-*.rpm)
+newer=$(echo -e "${current}\n${available}" | sort -V -r | head -n1)
+if [[ "${newer}" == "${available}" ]]; then
+    echo "[NOTICE] Upgrade ns-samba version $available"
+    /sbin/e-smith/signal-event nethserver-dc-upgrade
+    exit $?
+fi
+
+exit 0
