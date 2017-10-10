@@ -20,22 +20,19 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-# Check if Samba installed inside the containter needs to be updated
+status=$(/sbin/e-smith/config getprop nsdc status)
 
-from_dc=$(rpm -qp /usr/lib/nethserver-dc/ns-samba-*.ns7.*.rpm)
-from_nsdc=$(rpm -q --root=/var/lib/machines/nsdc/ ns-samba)
-
-# ns-samba is up-to-date
-if [ $from_dc == $from_nsdc ]; then
+if [[ "${status}" == "disabled" ]]; then
     exit 0
 fi
 
-# get the rpm with newer release
-newer=$(echo -e "$from_dc\n$from_nsdc\n" | sort -V -r | head -n1)
-
-# an update is needed
-if [ $newer == $from_dc ]; then
-   exit 1
+current=$(rpm -q --queryformat='%{VERSION}\n' --root=/var/lib/machines/nsdc/ ns-samba)
+available=$(rpm -qp --queryformat='%{VERSION}\n' /usr/lib/nethserver-dc/ns-samba-*.rpm)
+newer=$(echo -e "${current}\n${available}" | sort -V -r | head -n1)
+if [[ "${newer}" == "${available}" ]]; then
+    echo "[NOTICE] Upgrade ns-samba version $available"
+    /sbin/e-smith/signal-event nethserver-dc-upgrade
+    exit $?
 fi
 
 exit 0

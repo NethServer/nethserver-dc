@@ -1,5 +1,4 @@
 #
 # 20_nethserver_dc
 #
-%adm ALL=NOPASSWD: /usr/libexec/nethserver/check-samba-update
-
+%adm ALL=NOPASSWD: /usr/libexec/nethserver/read-nssamba-version
