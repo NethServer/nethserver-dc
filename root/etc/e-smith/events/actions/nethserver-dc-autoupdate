@@ -29,7 +29,7 @@ fi
 current=$(rpm -q --queryformat='%{VERSION}\n' --root=/var/lib/machines/nsdc/ ns-samba)
 available=$(rpm -qp --queryformat='%{VERSION}\n' /usr/lib/nethserver-dc/ns-samba-*.rpm)
 newer=$(echo -e "${current}\n${available}" | sort -V -r | head -n1)
-if [[ "${newer}" == "${available}" ]]; then
+if [[ "${current}" != "${available}" && "${newer}" == "${available}" ]]; then
     echo "[NOTICE] Upgrade ns-samba version $available"
     /sbin/e-smith/signal-event nethserver-dc-upgrade
     exit $?
