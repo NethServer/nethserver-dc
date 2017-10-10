@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+AutoUpdateType=$(/sbin/e-smith/config getprop nsdc AutoUpdateType)
+status=$(/sbin/e-smith/config getprop nsdc status)
+
+if [[ "${AutoUpdateType}" == "disabled" || "${status}" == "disabled" ]]; then
+    exit 0;
+elif [[ "${AutoUpdateType}" == "patch" ]]; then
+    current=$(rpm -q --queryformat='%{VERSION}\n' --root=/var/lib/machines/nsdc/ ns-samba)
+    available=$(rpm -qp --queryformat='%{VERSION}\n' /usr/lib/nethserver-dc/ns-samba-*.ns7.*.rpm)
+    newer=$(echo -e "${current}\n${available}" | sort -V -r | head -n1)
+
+    if [[ $newer == $available && $available != $current ]]; then
+        # compare minor versions (X.Y)
+        availableShort=$(echo $available | cut -f 1-2 -d .)
+        currentShort=$(echo $current | cut -f 1-2 -d .)
+        if [[ $availableShort == $currentShort ]]; then
+            echo "[NOTICE] Upgrade ns-samba (patch) version $available"
+            /sbin/e-smith/signal-event nethserver-dc-upgrade
+            exit $?
+        else 
+            echo "[NOTICE] The ns-samba-$available update requires manual installation"
+        fi
+    fi
+fi
+
+exit 0

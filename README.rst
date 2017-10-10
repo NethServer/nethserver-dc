@@ -13,6 +13,7 @@ This is a typical configuration::
 
   # config show nsdc
   nsdc=service
+     AutoUpdateType=patch
      ProvisionType=newdomain
      IpAddress=192.168.122.50
      bridge=br0
@@ -113,6 +114,12 @@ To upgrade, execute: ::
 
     signal-event nethserver-dc-upgrade
 
+The upgrade event can start automatically, during the nethserver-dc-update event,
+according to the ``AutoUpdateType`` prop value. Allowed values are:
+
+* ``disabled`` - the upgrade must be started manually
+* ``patch`` (default) - the upgrade is started automatically if the new ns-samba 
+  package version differs only in patch level number
 
 Changing the IP address of DC
 -----------------------------
