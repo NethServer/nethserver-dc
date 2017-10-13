@@ -6,7 +6,7 @@ Summary:        NethServer Domain Controller configuration
 License:        GPLv3+
 URL: %{url_prefix}/%{name}
 Source0:        %{name}-%{version}.tar.gz
-Source1:        https://github.com/NethServer/ns-samba/releases/download/4.6.5/ns-samba-4.6.5-1.ns7.x86_64.rpm
+Source1:        https://github.com/NethServer/ns-samba/releases/download/4.6.8/ns-samba-4.6.8-1.ns7.x86_64.rpm
 
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
