@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.2.6
+Version: 1.3.0
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Oct 16 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.0-1
+- Samba automatic updates - NethServer/dev#5360
+
 * Thu Jul 20 2017 Davide Principi <davide.principi@nethesis.it> - 1.2.6-1
 - Web interface for changing nsdc IP address - NethServer/dev#5330
 
