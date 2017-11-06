@@ -20,8 +20,6 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-set -e
-
 event=$1
 nsroot=/var/lib/machines/nsdc
 
@@ -30,13 +28,13 @@ if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
     exit 0
 fi
 
-# Stop the container
-if systemctl -q is-active nsdc 2>/dev/null; then
-    systemctl stop nsdc
-fi
-
 # Upgrade chroot base system & samba package
 yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
 
-# Start the container
-systemctl start nsdc
+if [[ $? != 0 ]]; then
+    echo "[ERROR] Failed to update the nsdc chroot"
+    exit 1
+fi
+
+# Restart the Samba DC service in nsdc container
+systemctl -M nsdc restart samba
