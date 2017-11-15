@@ -20,6 +20,8 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-find /var/lib/machines/nsdc/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
+prefix=/var/lib/machines/nsdc
 
-systemctl --root=/var/lib/machines/nsdc enable samba.service ntpd.service
+find ${prefix}/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
+cp -vfp ${prefix}/var/lib/samba/private/krb5.conf ${prefix}/etc/krb5.conf
+systemctl --root=${prefix} enable samba.service ntpd.service
