@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.3.1
+Version: 1.3.2
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Fri Nov 24 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.2-1
+- Cannot contact any KDC for realm (sssd) - Bug NethServer/dev#5382
+
 * Mon Nov 06 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.1-1
 - Minimize nsdc update downtime - NethServer/dev#5372
 
