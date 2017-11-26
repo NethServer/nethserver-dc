@@ -22,10 +22,19 @@
 
 use strict;
 use Errno;
+use NethServer::SSSD;
 
 my $event = shift;
 my $userName = shift;
 my $FullName = shift;
+my $shell = shift || '/usr/libexec/openssh/sftp-server';
+
+my $sssd = new NethServer::SSSD();
+my $bindPassword = $sssd->bindPassword();
+my $baseDN = $sssd->baseDN();
+my $bindDN = $sssd->bindDN();
+my $host = $sssd->host();
+
 
 if(! defined ($userName)) {
     die "Username argument missing\n";
@@ -40,3 +49,29 @@ if ($? != 0) {
     die("[ERROR] User $userName modification failed\n");
 }
 
+
+#Create a ldif file and use it to modify the shell access
+#a random name and a chmod is done for security
+my $filename = "/tmp/$userName-". sprintf("%08X", rand(0xFFFFFFFF)).".ldif";
+my $contentFile = qq (
+dn: cn=$userName,cn=Users,$baseDN
+changetype: modify
+replace: loginShell
+loginShell: $shell
+);
+
+open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
+chmod 0600, $filename;
+print $fh $contentFile;
+close $fh;
+
+system('/usr/bin/ldapmodify', 
+            '-Z', '-h', $host, 
+            '-D', $bindDN, 
+            '-w', $bindPassword, 
+            '-f', $filename);
+
+if($? != 0) {
+        die("[ERROR] Failed to modify user `$userName` fields!\n");
+}
+unlink $filename;
