@@ -22,7 +22,7 @@
 
 use strict;
 use Errno;
-use NethServer::SSSD;
+use NethServer::SSSD; 
 
 my $event = shift;
 my $userName = shift;
@@ -30,11 +30,7 @@ my $FullName = shift;
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
 my $sssd = new NethServer::SSSD();
-my $bindPassword = $sssd->bindPassword();
 my $baseDN = $sssd->baseDN();
-my $bindDN = $sssd->bindDN();
-my $host = $sssd->host();
-
 
 if(! defined ($userName)) {
     die "Username argument missing\n";
@@ -52,7 +48,10 @@ if ($? != 0) {
 
 #Create a ldif file and use it to modify the shell access
 #a random name and a chmod is done for security
-my $filename = "/tmp/$userName-". sprintf("%08X", rand(0xFFFFFFFF)).".ldif";
+my $path = '/var/lib/machines/nsdc/var/lib/samba/private/';
+my $fileName = "$userName-". sprintf("%08X", rand(0xFFFFFFFF)).".ldif";
+my $filePath = $path . $fileName;
+
 my $contentFile = qq (
 dn: cn=$userName,cn=Users,$baseDN
 changetype: modify
@@ -60,18 +59,17 @@ replace: loginShell
 loginShell: $shell
 );
 
-open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
-chmod 0600, $filename;
+open(my $fh, '>', $filePath) or die "Could not open file '$filePath' $!";
+chmod 0600, $filePath;
 print $fh $contentFile;
 close $fh;
 
-system('/usr/bin/ldapmodify', 
-            '-Z', '-h', $host, 
-            '-D', $bindDN, 
-            '-w', $bindPassword, 
-            '-f', $filename);
+#Launch ldbmodify and expect the return
+system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb /var/lib/samba/private/$fileName;
+    expect "Modified 1 records successfully" { exit 0 }; exit 3' >/dev/null));
 
-if($? != 0) {
-        die("[ERROR] Failed to modify user `$userName` fields!\n");
+if ($? != 0) {
+    die("[ERROR] User $userName shell modification failed\n");
 }
-unlink $filename;
+
+unlink $filePath;
