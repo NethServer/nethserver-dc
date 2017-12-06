@@ -20,7 +20,7 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-# Grant Account Operator privilege to the local machine account
+# Revoke Account Operator privilege to the local machine account (#5396)
 
 # Run only if we are a local accounts provider:
 perl -MNethServer::SSSD -e 'exit(NethServer::SSSD->new()->isLocalProvider() ? 0 : 1);'
@@ -38,15 +38,13 @@ expect {
 }
 EOF
 
-if [[ $? == 3 ]]; then 
+if [[ $? == 0 ]]; then
     expect <<EOF
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Account Operators" "${sAMAccountName}"
-expect "Added members" { exit 0 }
+spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "Account Operators" "${sAMAccountName}"
+expect "Removed members" { exit 0 }
 exit 3
 EOF
     if [[ $? == 0 ]]; then
-        echo "[NOTICE] Added machine account to Account Operators group"
-        /etc/e-smith/events/actions/nethserver-dc-sync-upn $*
+        echo "[NOTICE] Removed machine account from Account Operators group"
     fi
 fi
-
