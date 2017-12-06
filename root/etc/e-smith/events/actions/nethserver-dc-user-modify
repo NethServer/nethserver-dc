@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w 
 
 #
 # Copyright (C) 2013 Nethesis S.r.l.
@@ -23,18 +23,19 @@
 use strict;
 use Errno;
 use NethServer::SSSD; 
+use File::Temp;
 
 my $event = shift;
 my $userName = shift;
 my $FullName = shift;
 my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
-my $sssd = new NethServer::SSSD();
-my $baseDN = $sssd->baseDN();
-
 if(! defined ($userName)) {
     die "Username argument missing\n";
 }
+
+my $sssd = new NethServer::SSSD();
+my $baseDN = $sssd->baseDN(); 
 
 #accept user@domain format
 $userName =~ s/@.*//;
@@ -46,12 +47,14 @@ if ($? != 0) {
 }
 
 
-#Create a ldif file and use it to modify the shell access
-#a random name and a chmod is done for security
-my $path = '/var/lib/machines/nsdc/var/lib/samba/private/';
-my $fileName = "$userName-". sprintf("%08X", rand(0xFFFFFFFF)).".ldif";
-my $filePath = $path . $fileName;
+#Create a temporary ldif file (root:root 0600)
+my $fileName = File::Temp->new(
+    UNLINK   => 0,
+    TEMPLATE => "$userName.XXXXXXXXXX",
+    DIR => '/var/lib/machines/nsdc/var/spool/'
+);
 
+#create the ldif content
 my $contentFile = qq (
 dn: cn=$userName,cn=Users,$baseDN
 changetype: modify
@@ -59,17 +62,19 @@ replace: loginShell
 loginShell: $shell
 );
 
-open(my $fh, '>', $filePath) or die "Could not open file '$filePath' $!";
-chmod 0600, $filePath;
-print $fh $contentFile;
-close $fh;
+#print the ldif content in the tempfile
+print $fileName $contentFile;
 
-#Launch ldbmodify and expect the return
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb /var/lib/samba/private/$fileName;
+#we need the relative path in the container
+my $relativePathFile = $fileName;
+$relativePathFile =~ s|/var/lib/machines/nsdc||;
+
+#modify the samba LDAP
+system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $relativePathFile;
     expect "Modified 1 records successfully" { exit 0 }; exit 3' >/dev/null));
 
 if ($? != 0) {
     die("[ERROR] User $userName shell modification failed\n");
 }
 
-unlink $filePath;
+unlink $fileName or die "[ERROR]: Impossible to unlink $fileName";
