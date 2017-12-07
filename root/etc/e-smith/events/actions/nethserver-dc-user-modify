@@ -22,7 +22,6 @@
 
 use strict;
 use Errno;
-use NethServer::SSSD; 
 use File::Temp;
 
 my $event = shift;
@@ -34,9 +33,6 @@ if(! defined ($userName)) {
     die "Username argument missing\n";
 }
 
-my $sssd = new NethServer::SSSD();
-my $baseDN = $sssd->baseDN(); 
-
 #accept user@domain format
 $userName =~ s/@.*//;
 
@@ -46,39 +42,32 @@ if ($? != 0) {
     die("[ERROR] User $userName modification failed\n");
 }
 
-
 #Create a temporary ldif file (root:root 0600)
-my $fileName = File::Temp->new(
-    UNLINK   => 1,
+my $fileFullPath = File::Temp->new(
     TEMPLATE => "$userName.XXXXXXXXXX",
     DIR => '/var/lib/machines/nsdc/var/spool/'
 );
 
-#we need the relative path in the container
-my $relativePathFile = $fileName; 
-$relativePathFile =~ s|/var/lib/machines/nsdc||;
-
 #retrieve the dn from samaccountname
-my $command = qq(systemd-run -M nsdc -q -t /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
-open DN, "$command|";
-my $dn = <DN>;
-close(DN);
+my $dn = qx(systemd-run -M nsdc -q -t /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
 chomp $dn;
 
-#content of the ldif file
-my $contentFile = qq (
+#print the content
+print $fileFullPath qq (
 $dn
 changetype: modify
 replace: loginShell
 loginShell: $shell
 );
 
-#print the content
-print $fileName $contentFile;
-close($fileName);
+close($fileFullPath);
 
-#modify the samba LDAP
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $relativePathFile;
+#we need the relative path in the container
+my $fileRelativePath = $fileFullPath; 
+$fileRelativePath =~ s|/var/lib/machines/nsdc||;
+
+#modif the samba LDAP
+system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $fileRelativePath;
     expect "Modified 1 records successfully" { exit 0 }; exit 3' >/dev/null));
 
 if ($? != 0) {
