@@ -1,0 +1,80 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Initialize the ldapservice account, required by some applications to browse
+# the LDAP with simple authentication (#5396)
+
+# obtain full DN from sAMAccountName (strip CR)
+function get_dn()
+{
+    systemd-run -M nsdc -q -t \
+        ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=$1" dn | \
+        sed -n '/^dn: / { s/\r// ; p ; q }'
+}
+
+status=$(/sbin/e-smith/config getprop nsdc status)
+domain=$(hostname -d)
+
+if [[ "${status}" == "disabled" ]]; then
+    exit 0
+fi
+
+if [[ -n "$(get_dn ldapservice)" ]]; then
+    # ldapservice account already exists, nothing to do
+    exit 0;
+fi
+
+/sbin/e-smith/signal-event user-create "ldapservice" "NethServer LDAP simple auth identity" "/usr/bin/false"
+if [[ $? != 0 ]]; then
+    echo "[ERROR] failed to create the ldapservice account -- \"NethServer LDAP simple auth identity\""
+    exit 1
+fi
+
+# Generate temporary files and configure cleanup handler
+nsdc_prefix=/var/lib/machines/nsdc
+tmp_secret=$(mktemp)
+tmp_ldif=$(mktemp -p ${nsdc_prefix}/var/spool ldapservice-XXXXXX.ldif)
+trap "rm -f ${tmp_secret} ${tmp_ldif}" EXIT
+
+# Generate (if it does not already exist) and store the ldapservice password
+perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
+/sbin/e-smith/signal-event password-modify "ldapservice@${domain}" "${tmp_secret}"
+if [[ $? != 0 ]]; then
+    echo "[ERROR] failed to set password to ldapservice"
+    exit 1
+fi
+
+echo "$(get_dn ldapservice)
+changetype: modify
+replace: userWorkstations
+userWorkstations: /
+-
+replace: userAccountControl
+userAccountControl: 66048
+" > ${tmp_ldif}
+
+systemd-run -M nsdc -q -t ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
+    grep -q -F 'Modified 1 records successfully'
+if [[ $? != 0 ]]; then
+    echo "[ERROR] failed to set restricted access to ldapservice"
+    exit 1
+fi
