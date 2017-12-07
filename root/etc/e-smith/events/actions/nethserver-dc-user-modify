@@ -49,25 +49,33 @@ if ($? != 0) {
 
 #Create a temporary ldif file (root:root 0600)
 my $fileName = File::Temp->new(
-    UNLINK   => 0,
+    UNLINK   => 1,
     TEMPLATE => "$userName.XXXXXXXXXX",
     DIR => '/var/lib/machines/nsdc/var/spool/'
 );
 
-#create the ldif content
+#we need the relative path in the container
+my $relativePathFile = $fileName; 
+$relativePathFile =~ s|/var/lib/machines/nsdc||;
+
+#retrieve the dn from samaccountname
+my $command = qq(systemd-run -M nsdc -q -t /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
+open DN, "$command|";
+my $dn = <DN>;
+close(DN);
+chomp $dn;
+
+#content of the ldif file
 my $contentFile = qq (
-dn: cn=$userName,cn=Users,$baseDN
+$dn
 changetype: modify
 replace: loginShell
 loginShell: $shell
 );
 
-#print the ldif content in the tempfile
+#print the content
 print $fileName $contentFile;
-
-#we need the relative path in the container
-my $relativePathFile = $fileName;
-$relativePathFile =~ s|/var/lib/machines/nsdc||;
+close($fileName);
 
 #modify the samba LDAP
 system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $relativePathFile;
@@ -76,5 +84,3 @@ system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/l
 if ($? != 0) {
     die("[ERROR] User $userName shell modification failed\n");
 }
-
-unlink $fileName or die "[ERROR]: Impossible to unlink $fileName";
