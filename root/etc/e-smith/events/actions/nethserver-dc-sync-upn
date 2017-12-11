@@ -27,6 +27,8 @@ use NethServer::SSSD;
 use NethServer::LdapClient;
 use NethServer::AccountsList;
 use Sys::Hostname;
+use Net::LDAP::LDIF;
+use File::Temp;
 
 my $event = shift;
 
@@ -41,7 +43,16 @@ my $ldap = NethServer::LdapClient::connect($sssd);
 my $al = NethServer::AccountsList->new($sssd);
 
 my $errors = 0;
+my $updates = 0;
 my ($systemName, $domainName) = split(/\./, Sys::Hostname::hostname(), 2);
+
+my $nsdcPrefix = '/var/lib/machines/nsdc';
+my $tmpLdif = File::Temp->new(
+    TEMPLATE => "syncupn.XXXXXXXXXX",
+    DIR => $nsdcPrefix . '/var/spool/'
+);
+my $tmpLdifNsdc = substr($tmpLdif, length($nsdcPrefix));
+my $ldif = Net::LDAP::LDIF->new($tmpLdif, 'a', onerror => 'warn', 'encode' => 'canonical', 'change' => 1);
 
 NethServer::LdapClient::paged_search($sssd, $ldap,
     'base' => $sssd->userDN(),
@@ -60,11 +71,23 @@ sub _cb_fix_upn
     if($al->is_system_user($entry->get_value('objectSid')) || $al->is_system_user($user)) {
         return;
     }
-
-    my $result = $ldap->modify($entry->dn(), 'replace' => {'userPrincipalName' => sprintf('%s@%s', $user, $domainName)});
+    $entry->replace('userPrincipalName' => sprintf('%s@%s', $user, $domainName));
+    my $result = $entry->update($ldif);
     if($result->is_error()) {
         $errors ++;
+    } else {
+        $updates ++;
     }
+}
+
+my $out = qx(systemd-run -M nsdc -q -t ldbmodify -v -i -H /var/lib/samba/private/sam.ldb $tmpLdifNsdc);
+if($? != 0) {
+    warn "[ERROR] failed to modify UPN suffixes\n";
+    $errors ++;
+} elsif($out !~ m/Modified $updates records successfully/) {
+    chomp($out);
+    warn "[ERROR] Expected \"$updates records\", got \"$out\"\n";
+    $errors ++;
 }
 
 exit($errors > 0 ? 1 : 0);

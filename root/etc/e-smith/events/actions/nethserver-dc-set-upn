@@ -35,8 +35,7 @@ replace: uPNSuffixes
 uPNSuffixes: ${Domain}
 " > ${tmp_ldif}
 
-ldb_path=$(find ${nsdc_prefix}/var/lib/samba/private/sam.ldb.d -name 'CN=CONFIGURATION,*.ldb')
-systemd-run -M nsdc -q -t ldbmodify -v -i -H ${ldb_path#${nsdc_prefix}} ${tmp_ldif#${nsdc_prefix}} | \
+systemd-run -M nsdc -q -t ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
     grep -q -F 'Modified 1 records successfully'
 if [[ $? != 0 ]]; then
     echo "[ERROR] UPN suffix update failed"
