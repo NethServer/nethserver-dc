@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w 
 
 #
 # Copyright (C) 2013 Nethesis S.r.l.
@@ -22,10 +22,12 @@
 
 use strict;
 use Errno;
+use File::Temp;
 
 my $event = shift;
 my $userName = shift;
 my $FullName = shift;
+my $shell = shift || '/usr/libexec/openssh/sftp-server';
 
 if(! defined ($userName)) {
     die "Username argument missing\n";
@@ -40,3 +42,34 @@ if ($? != 0) {
     die("[ERROR] User $userName modification failed\n");
 }
 
+#Create a temporary ldif file (root:root 0600)
+my $fileFullPath = File::Temp->new(
+    TEMPLATE => "$userName.XXXXXXXXXX",
+    DIR => '/var/lib/machines/nsdc/var/spool/'
+);
+
+#retrieve the dn from samaccountname
+my $dn = qx(systemd-run -M nsdc -q -t /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
+chomp $dn;
+
+#print the content
+print $fileFullPath qq (
+$dn
+changetype: modify
+replace: loginShell
+loginShell: $shell
+);
+
+close($fileFullPath);
+
+#we need the relative path in the container
+my $fileRelativePath = $fileFullPath; 
+$fileRelativePath =~ s|/var/lib/machines/nsdc||;
+
+#modif the samba LDAP
+system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $fileRelativePath;
+    expect "Modified 1 records successfully" { exit 0 }; exit 3' >/dev/null));
+
+if ($? != 0) {
+    die("[ERROR] User $userName shell modification failed\n");
+}
