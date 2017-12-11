@@ -57,6 +57,7 @@ trap "rm -f ${tmp_secret} ${tmp_ldif}" EXIT
 
 # Generate (if it does not already exist) and store the ldapservice password
 perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
+/sbin/e-smith/config setprop sssd BindDN "ldapservice@${domain}" BindPassword $(<$tmp_secret)
 /sbin/e-smith/signal-event password-modify "ldapservice@${domain}" "${tmp_secret}"
 if [[ $? != 0 ]]; then
     echo "[ERROR] failed to set password to ldapservice"
@@ -78,3 +79,5 @@ if [[ $? != 0 ]]; then
     echo "[ERROR] failed to set restricted access to ldapservice"
     exit 1
 fi
+
+/sbin/e-smith/signal-event nethserver-sssd-save
