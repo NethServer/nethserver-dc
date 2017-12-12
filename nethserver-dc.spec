@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.3.3
+Version: 1.4.0
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue Dec 12 2017 Davide Principi <davide.principi@nethesis.it> - 1.4.0-1
+- Change the shell access after the user creation with SAMBA4 AD - NethServer/dev#5391
+
 * Tue Dec 05 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.3-1
 - Bump ns-samba-4.6.11 CVE-2017-14746 - NethServer/nethserver-dc#70
 - Automated RPM builds - NethServer/dev#5393 
