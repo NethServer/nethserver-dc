@@ -31,6 +31,7 @@ function get_dn()
         sed -n '/^dn: / { s/\r// ; p ; q }'
 }
 
+event=$1
 status=$(/sbin/e-smith/config getprop nsdc status)
 domain=$(hostname -d)
 
@@ -80,4 +81,6 @@ if [[ $? != 0 ]]; then
     exit 1
 fi
 
-/sbin/e-smith/signal-event nethserver-sssd-save
+if [[ "${event}" == "nethserver-dc-update" ]]; then
+    /sbin/e-smith/signal-event nethserver-sssd-save
+fi
