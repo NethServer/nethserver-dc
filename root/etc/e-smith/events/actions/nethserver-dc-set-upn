@@ -22,19 +22,21 @@
 
 # Add alternate UPN suffix
 BaseDN=$(perl -MNethServer::SSSD -e 'print NethServer::SSSD->new()->baseDN();')
-LdapUri=ldaps://$(/sbin/e-smith/config getprop nsdc IpAddress)
-KrbRealm=$(/sbin/e-smith/config getprop sssd Realm)
 Domain=$(hostname -d)
-Password='Nethesis,1234'
 
-ldapmodify -D administrator@$KrbRealm -w $Password -H "${LdapUri}" <<EOF
-dn: cn=Partitions,cn=Configuration,$BaseDN
+# Generate temporary files and configure cleanup handler
+nsdc_prefix=/var/lib/machines/nsdc
+tmp_ldif=$(mktemp -p ${nsdc_prefix}/var/spool upn-XXXXXX.ldif)
+trap "rm -f ${tmp_ldif}" EXIT
+
+echo "dn: cn=Partitions,cn=Configuration,$BaseDN
 changetype: modify
 replace: uPNSuffixes
-uPNSuffixes: $Domain
-EOF
+uPNSuffixes: ${Domain}
+" > ${tmp_ldif}
 
+systemd-run -M nsdc -q -t ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
+    grep -q -F 'Modified 1 records successfully'
 if [[ $? != 0 ]]; then
-    echo "[ERROR] UPN suffix update failed (LdapUri=${LdapUri})"
+    echo "[ERROR] UPN suffix update failed"
 fi
-

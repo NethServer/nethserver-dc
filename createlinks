@@ -28,6 +28,7 @@ event_actions('nethserver-dc-update', qw(
    nethserver-dc-fixchroot 40
    nethserver-dc-autoupdate 50
    nethserver-dc-firststart 95
+   nethserver-dc-createldapservice 96
    nethserver-dc-machine-grants 96
 ));
 
@@ -38,6 +39,7 @@ event_actions('nethserver-dc-save', qw(
    nethserver-dc-install 02
    nethserver-dc-provision 10
    nethserver-dc-waitstart 95
+   nethserver-dc-createldapservice 96
    nethserver-dc-join 96
    nethserver-dc-password-policy 97
    nethserver-dc-set-upn 97
