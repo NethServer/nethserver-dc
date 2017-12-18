@@ -27,7 +27,7 @@
 function get_dn()
 {
     systemd-run -M nsdc -q -t \
-        ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=$1" dn | \
+        /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=$1" dn | \
         sed -n '/^dn: / { s/\r// ; p ; q }'
 }
 
@@ -76,7 +76,7 @@ replace: userAccountControl
 userAccountControl: 66048
 " > ${tmp_ldif}
 
-systemd-run -M nsdc -q -t ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
+systemd-run -M nsdc -q -t /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
     grep -q -F 'Modified 1 records successfully'
 if [[ $? != 0 ]]; then
     echo "[ERROR] failed to set restricted access to ldapservice"
