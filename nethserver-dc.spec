@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.4.0
+Version: 1.4.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed Jan 10 2018 Davide Principi <davide.principi@nethesis.it> - 1.4.1-1
+- AD access for LDAP simple auth applications - NethServer/dev#5396
+
 * Tue Dec 12 2017 Davide Principi <davide.principi@nethesis.it> - 1.4.0-1
 - Change the shell access after the user creation with SAMBA4 AD - NethServer/dev#5391
 
