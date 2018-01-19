@@ -40,15 +40,13 @@ if [[ "${status}" == "disabled" ]]; then
     exit 0
 fi
 
-if [[ -n "$(get_dn ldapservice)" ]]; then
-    # ldapservice account already exists, nothing to do
-    exit 0;
-fi
-
-/sbin/e-smith/signal-event user-create "ldapservice" "NethServer LDAP simple auth identity" "/usr/bin/false"
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to create the ldapservice account -- \"NethServer LDAP simple auth identity\""
-    exit 1
+if [[ -z "$(get_dn ldapservice)" && systemd-run -M nsdc -q -t /bin/true ]]; then
+    # ldapservice account does not exist, proceed with creation
+    /sbin/e-smith/signal-event user-create "ldapservice" "NethServer LDAP simple auth identity" "/usr/bin/false"
+    if [[ $? != 0 ]]; then
+        echo "[ERROR] failed to create the ldapservice account -- \"NethServer LDAP simple auth identity\""
+        exit 1
+    fi
 fi
 
 # Generate temporary files and configure cleanup handler
@@ -57,17 +55,12 @@ tmp_secret=$(mktemp)
 tmp_ldif=$(mktemp -p ${nsdc_prefix}/var/spool ldapservice-XXXXXX.ldif)
 trap "rm -f ${tmp_secret} ${tmp_ldif}" EXIT
 
-# Generate (if it does not already exist) and store the ldapservice password
-perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
-/sbin/e-smith/config setprop sssd BindDN "ldapservice@${realm}" BindPassword $(<$tmp_secret)
-/sbin/e-smith/signal-event password-modify "ldapservice@${domain}" "${tmp_secret}"
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to set password to ldapservice"
-    exit 1
-fi
-
-# Invalidate workstation logon, mark the password as non-expiring
-echo "$(get_dn ldapservice)
+#
+# Enable password and user workstation restrictions
+#
+if [[ -z $(/sbin/e-smith/config getprop sssd BindPassword) ]]; then
+    # Invalidate workstation logon, mark the password as non-expiring
+    echo "$(get_dn ldapservice)
 changetype: modify
 replace: userWorkstations
 userWorkstations: /
@@ -76,13 +69,32 @@ replace: userAccountControl
 userAccountControl: 66048
 " > ${tmp_ldif}
 
-systemd-run -M nsdc -q -t /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
-    grep -q -F 'Modified 1 records successfully'
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to set restricted access to ldapservice"
-    exit 1
+    systemd-run -M nsdc -q -t /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
+        grep -q -F 'Modified 1 records successfully'
+    if [[ $? != 0 ]]; then
+        echo "[ERROR] failed to set restricted access to ldapservice"
+        exit 1
+    fi
+
+    # Generate (if it does not already exist) and store the ldapservice password
+    perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
+    /sbin/e-smith/signal-event password-modify "ldapservice@${domain}" "${tmp_secret}"
+    if [[ $? != 0 ]]; then
+        echo "[ERROR] failed to set password to ldapservice"
+        exit 1
+    fi
+
+    # Persist ldapservice password in BindPassword prop
+    /sbin/e-smith/config setprop sssd BindPassword $(<$tmp_secret)
 fi
 
-if [[ "${event}" == "nethserver-dc-update" ]]; then
-    /sbin/e-smith/signal-event nethserver-sssd-save
+#
+# Save BindDN and notify SSSD
+#
+if [[ -z $(/sbin/e-smith/config getprop sssd BindDN) ]]; then
+    # Persist ldapservice password in BindDN prop
+    /sbin/e-smith/config setprop sssd BindDN "ldapservice@${realm}"
+    if [[ "${event}" == "nethserver-dc-update" ]]; then
+        /sbin/e-smith/signal-event nethserver-sssd-save
+    fi
 fi
