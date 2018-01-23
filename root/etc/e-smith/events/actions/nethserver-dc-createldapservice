@@ -69,7 +69,7 @@ if [[ -z "\$(get_dn ldapservice)" ]]; then
   || ((++errors))
 fi
 
-# password never expires:
+# set password never expires and deny access from any workstation:
 /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
 changetype: modify
 replace: userWorkstations
@@ -99,8 +99,13 @@ function systemd_run_sync()
   # systemd properties
   local ExecMainStatus MainPID
   ExecMainStatus=3
+  unit_name=$(mktemp -u -d create-ldapservice-XXXXXX)
 
-  unit_name=$(systemd-run --remain-after-exit -M nsdc "$@" 2>&1 | sed 's/^Running as unit //; s/\.service\.$//')
+  systemd-run --unit=${unit_name} --remain-after-exit -M nsdc "$@"
+  if [[ $? != 0 ]]; then
+    echo "[ERROR] failed to spawn ${unit_name}"
+    return 6
+  fi
 
   # Wait until the unit is considered active:
   while ! systemctl is-active -q -M nsdc ${unit_name}; do
@@ -130,17 +135,18 @@ function systemd_run_sync()
 
 systemd_run_sync /usr/bin/bash ${tmp_script#${nsdc_prefix}}
 
-if [[ $? == 0 ]]; then
+retval=$?
+if [[ $retval == 0 ]]; then
     # Persist ldapservice credentials in BindDN and BindPassword props
     /sbin/e-smith/config setprop sssd BindDN "ldapservice@${realm}" BindPassword $(<$tmp_secret)
     if [[ "${event}" == "nethserver-dc-update" ]]; then
         /sbin/e-smith/signal-event nethserver-sssd-save
     fi
-elif [[ $? == 1 ]]; then
+elif [[ $retval == 1 ]]; then
     cat ${tmp_log} 1>&2
     echo "[ERROR] ldapservice creation task failed"
     exit 1
 else
-    echo "[ERROR] failed to synchronize with ldapservice creation task (error=$?)"
+    echo "[ERROR] failed to synchronize with ldapservice creation task (error=$retval)"
     exit 2
 fi
