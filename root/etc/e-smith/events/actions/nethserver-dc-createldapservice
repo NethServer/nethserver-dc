@@ -23,14 +23,6 @@
 # Initialize the ldapservice account, required by some applications to browse
 # the LDAP with simple authentication (#5396)
 
-# obtain full DN from sAMAccountName (strip CR)
-function get_dn()
-{
-    systemd-run -M nsdc -q -t \
-        /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=$1" dn | \
-        sed -n '/^dn: / { s/\r// ; p ; q }'
-}
-
 event=$1
 status=$(/sbin/e-smith/config getprop nsdc status)
 domain=$(hostname -d)
@@ -40,49 +32,121 @@ if [[ "${status}" == "disabled" ]]; then
     exit 0
 fi
 
-if [[ -n "$(get_dn ldapservice)" ]]; then
-    # ldapservice account already exists, nothing to do
-    exit 0;
-fi
-
-/sbin/e-smith/signal-event user-create "ldapservice" "NethServer LDAP simple auth identity" "/usr/bin/false"
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to create the ldapservice account -- \"NethServer LDAP simple auth identity\""
-    exit 1
+if [[ -n $(/sbin/e-smith/config getprop sssd BindDN) ]]; then
+    exit 0
 fi
 
 # Generate temporary files and configure cleanup handler
 nsdc_prefix=/var/lib/machines/nsdc
-tmp_secret=$(mktemp)
-tmp_ldif=$(mktemp -p ${nsdc_prefix}/var/spool ldapservice-XXXXXX.ldif)
-trap "rm -f ${tmp_secret} ${tmp_ldif}" EXIT
+tmp_secret=$(mktemp -p ${nsdc_prefix}/var/spool ldapservice-XXXXXX.secret)
+tmp_script=$(mktemp -p ${nsdc_prefix}/var/spool createldapservice-XXXXXX.sh)
+tmp_log=$(mktemp -p ${nsdc_prefix}/var/spool createldapservice-XXXXXX.log)
+trap "rm -f ${tmp_secret} ${tmp_script} ${tmp_log}" EXIT
 
-# Generate (if it does not already exist) and store the ldapservice password
-perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
-/sbin/e-smith/config setprop sssd BindDN "ldapservice@${realm}" BindPassword $(<$tmp_secret)
-/sbin/e-smith/signal-event password-modify "ldapservice@${domain}" "${tmp_secret}"
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to set password to ldapservice"
-    exit 1
+#
+# Prepare the shell script for nsdc
+#
+cat - >${tmp_script} <<EOF
+echo Log to ${tmp_log#${nsdc_prefix}}
+exec >${tmp_log#${nsdc_prefix}}
+exec 2>&1
+set -x
+errors=0
+
+function get_dn()
+{
+  /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=\$1" dn | \
+    sed -n '/^dn: / { s/\r// ; p ; q }'
+}
+
+if [[ -z "\$(get_dn ldapservice)" ]]; then
+  samba-tool user create ldapservice \
+      --random-password \
+      --must-change-at-next-login \
+      "--login-shell=/usr/bin/false" \
+      "--given-name=NethServer LDAP simple auth identity" \
+      --use-username-as-cn \
+  || ((++errors))
 fi
 
-# Invalidate workstation logon, mark the password as non-expiring
-echo "$(get_dn ldapservice)
+# set password never expires and deny access from any workstation:
+/usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
 changetype: modify
 replace: userWorkstations
 userWorkstations: /
 -
 replace: userAccountControl
 userAccountControl: 66048
-" > ${tmp_ldif}
+"
 
-systemd-run -M nsdc -q -t /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb ${tmp_ldif#${nsdc_prefix}} | \
-    grep -q -F 'Modified 1 records successfully'
-if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to set restricted access to ldapservice"
-    exit 1
+if [[ \$? != 0 ]]; then
+  ((++errors))
 fi
 
-if [[ "${event}" == "nethserver-dc-update" ]]; then
-    /sbin/e-smith/signal-event nethserver-sssd-save
+samba-tool user setpassword ldapservice "--newpassword=\$(< ${tmp_secret#${nsdc_prefix}})" || ((++errors))
+
+if ((errors > 0)); then
+  exit 1
+fi
+EOF
+
+# Generate (if it does not already exist) and store the ldapservice password
+perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
+
+function systemd_run_sync()
+{
+  local unit_name attempts 
+  # systemd properties
+  local ExecMainStatus MainPID
+  ExecMainStatus=3
+  unit_name=$(mktemp -u -d create-ldapservice-XXXXXX)
+
+  systemd-run --unit=${unit_name} --remain-after-exit -M nsdc "$@"
+  if [[ $? != 0 ]]; then
+    echo "[ERROR] failed to spawn ${unit_name}"
+    return 6
+  fi
+
+  # Wait until the unit is considered active:
+  while ! systemctl is-active -q -M nsdc ${unit_name}; do
+    if ((++attempts > 5 )); then
+      echo "[ERROR] cannot find the ${unit_name} active task"
+      return 2
+    fi
+    sleep 1
+  done
+
+  # Poll the unit exit code
+  attempts=0
+  while eval $(systemctl show -M nsdc ${unit_name} -p ExecMainStatus -p MainPID); do
+    if((++attempts > 15)); then
+      echo "[ERROR] reached maximum task execution time"
+      return 4
+    elif [[ $MainPID == 0 ]]; then
+      break;
+    fi
+    sleep 2
+  done
+
+  # Destroy systemd unit state (see manpage for --remain-after-exit flag)
+  systemctl stop -M nsdc ${unit_name} || :
+  return $ExecMainStatus
+}
+
+systemd_run_sync /usr/bin/bash ${tmp_script#${nsdc_prefix}}
+
+retval=$?
+if [[ $retval == 0 ]]; then
+    # Persist ldapservice credentials in BindDN and BindPassword props
+    /sbin/e-smith/config setprop sssd BindDN "ldapservice@${realm}" BindPassword $(<$tmp_secret)
+    if [[ "${event}" == "nethserver-dc-update" ]]; then
+        /sbin/e-smith/signal-event nethserver-sssd-save
+    fi
+elif [[ $retval == 1 ]]; then
+    cat ${tmp_log} 1>&2
+    echo "[ERROR] ldapservice creation task failed"
+    exit 1
+else
+    echo "[ERROR] failed to synchronize with ldapservice creation task (error=$retval)"
+    exit 2
 fi
