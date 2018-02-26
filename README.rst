@@ -73,7 +73,9 @@ Join the domain: ::
    realm join -v -U admin $(config getprop sssd Realm)
 
 You can replace ``admin`` with any other administrative account name. The
-command above prompts for a password.
+command above prompts for a password. When join is successful: ::
+
+   signal-event nethserver-sssd-save
 
 If everything goes well ::
 
