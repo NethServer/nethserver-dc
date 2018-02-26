@@ -66,6 +66,7 @@ Check the DNS is responding: ::
 
 Clean up any previous join state: ::
 
+    config setprop sssd Provider none
     signal-event nethserver-sssd-leave
 
 Join the domain: ::
@@ -75,12 +76,16 @@ Join the domain: ::
 You can replace ``admin`` with any other administrative account name. The
 command above prompts for a password. When join is successful: ::
 
+   config setprop sssd Provider ad
    signal-event nethserver-sssd-save
 
 If everything goes well ::
 
    getent passwd administrator@$(hostname -d)
-   # output: administrator@nethserver.org:*:261600500:261600513:Administrator:/home/administrator@nethserver.org:/bin/bash   
+   # output: administrator@nethserver.org:*:261600500:261600513:Administrator:/home/administrator@nethserver.org:/bin/bash
+   
+   /usr/libexec/nethserver/list-users -s administrator
+   # output: {"administrator": ...
 
 Once domain is joined, you can manage users from interface. From command line, you can use `net` command ::
 
