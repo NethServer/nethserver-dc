@@ -52,20 +52,28 @@ To have a shell inside the ``nsdc`` container, you can run ::
 Manual Join
 -----------
 
-nethserver-dc-join action joins automatically to domain. If you want to join domain manually, check that machine came up ::
+nethserver-dc-join action joins automatically to domain. If for any reason the
+join is invalid you can attempt a manual join following this procedure
 
-   # host -t SRV _ldap._tcp.`config get DomainName`
+Check nsdc is running: ::
+
+    systemctl status nsdc
+
+Check the DNS is responding: ::
+
+   # host -t SRV _ldap._tcp.$(config getprop sssd Realm)
    _ldap._tcp.nethsever.org has SRV record 0 100 389 nsdc-vm8.nethsever.org.
 
-then clear sssd.conf, join domain and expand sssd.conf template ::
+Clean up any previous join state: ::
 
-   > /etc/sssd/sssd.conf
-   realm join $(hostname -d)
-   expand-template /etc/sssd/sssd.conf
+    signal-event nethserver-sssd-leave
 
-Then provide the default administrator password::
+Join the domain: ::
 
-   Nethesis,1234
+   realm join -v -U admin $(config getprop sssd Realm)
+
+You can replace ``admin`` with any other administrative account name. The
+command above prompts for a password.
 
 If everything goes well ::
 
