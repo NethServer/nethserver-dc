@@ -21,12 +21,12 @@
 #
 
 provider=$(/sbin/e-smith/config getprop sssd Provider)
+nsroot=/var/lib/machines/nsdc
 
 if [[ "${provider}" != "ad" ]]; then
     exit 0
 fi
 
-nsroot=/var/lib/machines/nsdc
 
 for package in bind-utils ntp
 do
@@ -46,3 +46,4 @@ uid=$(grep ntp ${nsroot}/etc/passwd | awk -F: '{print $3}')
 chown 0:$uid ${nsroot}/var/lib/samba/ntp_signd/
 chmod 750 ${nsroot}/var/lib/samba/ntp_signd/
 
+exit 0
