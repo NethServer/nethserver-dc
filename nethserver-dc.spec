@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.4.2
+Version: 1.4.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Mar 12 2018 Davide Principi <davide.principi@nethesis.it> - 1.4.3-1
+- Locked in network interface rename page - Bug NethServer/dev#5428
+
 * Tue Jan 23 2018 Davide Principi <davide.principi@nethesis.it> - 1.4.2-1
 - Automatic update of AD LDAP credentials failed - Bug NethServer/dev#5413
 
