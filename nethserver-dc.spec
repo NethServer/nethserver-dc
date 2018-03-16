@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.4.3
+Version: 1.4.4
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Fri Mar 16 2018 Davide Principi <davide.principi@nethesis.it> - 1.4.4-1
+- Security release of ns-samba 4.6.16 - Bug NethServer/dev#5436 
+
 * Mon Mar 12 2018 Davide Principi <davide.principi@nethesis.it> - 1.4.3-1
 - Locked in network interface rename page - Bug NethServer/dev#5428
 
