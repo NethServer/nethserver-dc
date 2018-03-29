@@ -53,6 +53,9 @@ cp -f ${sourceDir}/etc/group ${destDir}/etc/group.migration || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/smbpasswd ${destDir}/srv/smbpasswd || (( errors ++ ))
 cp -f ${sourceDir}/etc/samba/secrets.tdb ${destDir}/srv/secrets.tdb || (( errors ++ ))
 
+# Filter out reserved user account names
+sed -i -r '/^(administrator|guest|krbtgt):/I d' ${destDir}/srv/smbpasswd || (( errors ++ ))
+
 # Fix workgroup for WS mode
 if [[ "${serverRole}" == "WS" ]]; then
     SystemName=$(/sbin/e-smith/db $sourceDir/home/e-smith/db/configuration get SystemName | tr '[:lower:]' '[:upper:]')
