@@ -1,0 +1,7 @@
+{
+    #
+    # 02provider_config_localad
+    #
+    $provider_config .= "ad_server = $nsdc{'IpAddress'}\n";
+    '';
+}
