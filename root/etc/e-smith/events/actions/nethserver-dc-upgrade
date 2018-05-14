@@ -28,6 +28,10 @@ if [[ ! -x ${nsroot}/usr/sbin/samba ]]; then
     exit 0
 fi
 
+# Synchronize YUM configuration
+rsync -ai --delete /etc/yum.repos.d/ ${nsroot}/etc/yum.repos.d
+rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
+
 # Upgrade chroot base system & samba package
 yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
 
@@ -35,6 +39,9 @@ if [[ $? != 0 ]]; then
     echo "[ERROR] Failed to update the nsdc chroot"
     exit 1
 fi
+
+# Workaround to BZ#1431198 krb5-libs-1.15.1-13 (includedir fix, not supported by Heimdal Kerberos)
+cp -vfp ${nsroot}/var/lib/samba/private/krb5.conf ${nsroot}/etc/krb5.conf
 
 # Restart the Samba DC service in nsdc container
 systemctl -M nsdc restart samba
