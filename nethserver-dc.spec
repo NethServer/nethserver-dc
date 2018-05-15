@@ -13,6 +13,7 @@ BuildRequires:  systemd
 
 Requires: nethserver-sssd > 1.1.9-1.ns7
 Requires: expect
+Requires: rsync
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
