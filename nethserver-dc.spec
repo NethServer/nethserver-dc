@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.5.0
+Version: 1.5.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue May 15 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.1-1
+- Wrong YUM repository config for NSDC upgrade procedure - Bug NethServer/dev#5495
+
 * Thu Apr 26 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.0-1
 - Samba DC 4.7.7 upgrade - NethServer/dev#5457
 
