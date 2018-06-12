@@ -98,7 +98,9 @@ foreach ($db->groups()) {
 EOF
 
 /sbin/e-smith/config setprop nsdc ProvisionType sme8migration
+/sbin/e-smith/config setprop sssd BindDN '' BindPassword ''
 /sbin/e-smith/signal-event nethserver-dc-save || (( errors ++ ))
+/sbin/e-smith/signal-event nethserver-sssd-save || (( errors ++ ))
 /etc/e-smith/events/actions/nethserver-dc-user-lock ${event} administrator@${domain} || (( errors ++ ))
 
 # Migrate user home directories
