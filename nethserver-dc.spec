@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.5.1
+Version: 1.5.2
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed Jun 13 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.2-1
+- Migration from sme8: no bind credentials for applications - Bug NethServer/dev#5527
+
 * Tue May 15 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.1-1
 - Wrong YUM repository config for NSDC upgrade procedure - Bug NethServer/dev#5495
 
