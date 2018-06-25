@@ -21,8 +21,13 @@
 #
 
 ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
+nsdcHostname=$(< /var/lib/machines/nsdc/etc/hostname)
+if [[ -n ${nsdcHostname} ]]; then
+    echo "[NOTICE] The DC host will be set to ${nsdcHostname}"
+    ldapUri="ldaps://${nsdcHostname}"
+fi
 
-/sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress} DiscoverDcType ldapuri LdapURI "ldaps://$(< /var/lib/machines/nsdc/etc/hostname)"
+/sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress} DiscoverDcType ldapuri LdapURI "${ldapUri}"
 /sbin/e-smith/expand-template /etc/dnsmasq.conf
 systemctl restart dnsmasq
 
