@@ -22,7 +22,7 @@
 
 ipAddress=$(/sbin/e-smith/config getprop nsdc IpAddress)
 
-/sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress}
+/sbin/e-smith/config setprop sssd status enabled Provider ad AdDns ${ipAddress} DiscoverDcType ldapuri LdapURI "ldaps://$(< /var/lib/machines/nsdc/etc/hostname)"
 /sbin/e-smith/expand-template /etc/dnsmasq.conf
 systemctl restart dnsmasq
 

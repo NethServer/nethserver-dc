@@ -30,7 +30,7 @@ function count_errors ()
 
 trap count_errors ERR
 
-/sbin/e-smith/config setprop sssd Provider none status disabled AdDns ''
+/sbin/e-smith/config setprop sssd Provider none status disabled AdDns '' DiscoverDcType dns LdapURI ''
 /sbin/e-smith/signal-event nethserver-sssd-leave
 /sbin/e-smith/signal-event nethserver-dnsmasq-save
 
