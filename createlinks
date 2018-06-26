@@ -59,6 +59,7 @@ my @templates = (qw(
    /var/lib/machines/nsdc/srv/post-provision.sh
    /etc/sysconfig/nsdc
    /etc/hosts
+   /etc/krb5.conf
 ));
 
 event_templates('nethserver-dc-save', @templates);
