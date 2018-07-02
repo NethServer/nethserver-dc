@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.5.2
+Version: 1.5.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -58,6 +58,11 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Jul 02 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.3-1
+- Send AD queries to a preferred DC - NethServer/dev#5534
+- Template of krb5.conf - NethServer/dev#5535
+- Bump ns-samba-4.7.8 - NethServer/nethserver-dc#83
+
 * Wed Jun 13 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.2-1
 - Migration from sme8: no bind credentials for applications - Bug NethServer/dev#5527
 
