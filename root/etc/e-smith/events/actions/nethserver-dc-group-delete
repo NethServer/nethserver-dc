@@ -34,7 +34,7 @@ if(! defined ($groupName)) {
 $groupName =~ s/@.*//;
 
 #Delete group 
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group delete "$groupName"; expect "Deleted group" { exit 0 }; exit 3'));
+system("/usr/bin/nsdc-cmd /usr/bin/samba-tool group delete '$groupName'");
 
 #die if group output differs from successful output
 if ($? != 0){

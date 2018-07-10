@@ -27,8 +27,11 @@ if [[ "${provider}" != "ad" ]]; then
     exit 0
 fi
 
+# Synchronize YUM configuration
+rsync -ai --delete /etc/yum.repos.d/ ${nsroot}/etc/yum.repos.d
+rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
 
-for package in bind-utils ntp
+for package in bind-utils ntp dropbear
 do
     if ! rpm -q --root=${nsroot} $package >/dev/null; then
         echo "[NOTICE] Fixing nsdc chroot, by installing $package package"
@@ -39,6 +42,16 @@ done
 # Enable ntpd service
 if ! systemctl --quiet -M nsdc is-active ntpd; then
     systemctl -M nsdc enable ntpd
+fi
+
+# Enable dropbear service
+if ! systemctl --quiet -M nsdc is-active dropbear; then
+    systemctl -M nsdc enable dropbear
+    systemctl -M nsdc start dropbear
+    dropbearkey -t rsa -f /var/lib/nethserver/nsdc/nsdc.key
+    mkdir -p ${nsroot}/root/.ssh
+    dropbearkey -y -f /var/lib/nethserver/nsdc/nsdc.key | grep "^ssh-rsa " >> ${nsroot}/root/.ssh/authorized_keys
+    chmod -R 600 ${nsroot}/root/.ssh
 fi
 
 # Set ntpd permissions

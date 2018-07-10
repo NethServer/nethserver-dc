@@ -30,20 +30,10 @@ fi
 
 sAMAccountName=$(hostname -s | cut --bytes=-15 | tr '[:lower:]' '[:upper:]')\$
 
-expect &>/dev/null <<EOF
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers "Account Operators"
-expect {
-    -nocase -ex "${sAMAccountName}" { exit 0 } 
-    eof { exit 3 }
-}
-EOF
+/usr/bin/nsdc-cmd /usr/bin/samba-tool group listmembers \'Account Operators\' | grep -q -F "${sAMAccountName}"
 
 if [[ $? == 0 ]]; then
-    expect <<EOF
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "Account Operators" "${sAMAccountName}"
-expect "Removed members" { exit 0 }
-exit 3
-EOF
+    /usr/bin/nsdc-cmd  /usr/bin/samba-tool group removemembers \'Account Operators\' \'${sAMAccountName}\'
     if [[ $? == 0 ]]; then
         echo "[NOTICE] Removed machine account from Account Operators group"
     fi

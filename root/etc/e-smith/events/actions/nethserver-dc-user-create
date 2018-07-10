@@ -48,7 +48,7 @@ if ($FullName eq '') {
 $userName =~ s/@.*//;
 
 #Create user
-system('expect', '-c', qq(spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user create "$userName" --random-password --must-change-at-next-login "--login-shell=$shell" "--unix-home=$homeDirPrefix$userName" "--given-name=$FullName" --use-username-as-cn; expect "User '$userName' created successfully" { exit 0 }; exit 3));
+system(qq(/usr/bin/nsdc-cmd /usr/bin/samba-tool user create '$userName' --random-password --must-change-at-next-login --login-shell=$shell --unix-home=$homeDirPrefix$userName "--given-name='$FullName'" --use-username-as-cn));
 if ($? != 0) {
     die("[ERROR] User $userName creation failed\n");
 }
