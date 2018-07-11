@@ -34,12 +34,4 @@ if ! [[ $USER == *"@${DOMAIN}" ]]; then
     exit 0
 fi
 
-exec expect -f - <<EOF
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user enable "${USER%@${DOMAIN}}"
-expect {
-    "Enabled user" {exit 0}
-}
-exit 2
-EOF
-
-
+/usr/bin/nsdc-cmd /usr/bin/samba-tool user enable "${USER%@${DOMAIN}}"

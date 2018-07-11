@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2018 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Execute a command inside the container
+#  - redirect all stderr to stdout
+#  - remove dbclient warning output: first 2 lines
+cmd () {
+    LANG=C dbclient -yy -i /var/lib/nethserver/nsdc/nsdc.key root@"$(/sbin/e-smith/config getprop nsdc IpAddress)" "$@" 2>&1 | tail -n+3
+}
+
+# Execute a command inside the container
+#   - raw command, no output/input management is performed
+cmd_raw () {
+    LANG=C dbclient -yy -i /var/lib/nethserver/nsdc/nsdc.key root@"$(/sbin/e-smith/config getprop nsdc IpAddress)" "$@"
+}
+
+# Display help and exit
+function help
+{
+    echo "Usage: $0 [-r] <cmd> [<args1> ... <argsN>]"
+    echo "  -r : execute raw command - use it for reading from stdin"
+    exit 1
+}
+
+raw=0
+while getopts ":h:r" opt; do
+  case $opt in
+    h)
+      help
+      ;;
+    r)
+      raw=1
+      shift
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+if [ $# -eq 0 ]; then
+    help
+fi
+
+if [ $raw -eq 1 ]; then
+    cmd_raw "$@"
+else
+    cmd "$@"
+fi

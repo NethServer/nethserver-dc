@@ -22,7 +22,15 @@
 
 nsroot=/var/lib/machines/nsdc
 
-systemctl --root=${nsroot} enable samba-provision.service samba.service ntpd.service
+systemctl --root=${nsroot} enable samba-provision.service samba.service ntpd.service dropbear.service
+
+if [ ! -f ${nsroot}/root/.ssh/authorized_keys ]; then
+    systemctl -M nsdc start dropbear
+    dropbearkey -t rsa -f /var/lib/nethserver/nsdc/nsdc.key
+    mkdir -p ${nsroot}/root/.ssh
+    dropbearkey -y -f /var/lib/nethserver/nsdc/nsdc.key | grep "^ssh-rsa " >> ${nsroot}/root/.ssh/authorized_keys
+    chmod -R 600 ${nsroot}/root/.ssh
+fi
 
 ProvisionType=$(/sbin/e-smith/config getprop nsdc ProvisionType)
 

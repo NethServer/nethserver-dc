@@ -83,7 +83,7 @@ sub _cb_fix_upn
 $ldif->done();
 close($tmpLdif);
 
-my $out = qx(systemd-run -M nsdc -q -t /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb $tmpLdifNsdc);
+my $out = qx(/usr/bin/nsdc-cmd /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb $tmpLdifNsdc);
 if($? != 0) {
     warn "[ERROR] failed to modify UPN suffixes\n";
     $errors ++;

@@ -34,7 +34,7 @@ if(! defined ($userName)) {
 $userName =~ s/@.*//;
 
 #Delete user
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool user delete "$userName"; expect "Deleted user $userName" { exit 0 }; exit 3'));
+system("/usr/bin/nsdc-cmd /usr/bin/samba-tool user delete '$userName'");
 if ($? != 0) {
     die("[ERROR] User $userName deletion failed\n");
 }

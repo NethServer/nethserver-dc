@@ -37,40 +37,39 @@ if [[ -n $(/sbin/e-smith/config getprop sssd BindDN) ]]; then
 fi
 
 # Generate temporary files and configure cleanup handler
-nsdc_prefix=/var/lib/machines/nsdc
-tmp_secret=$(mktemp -p ${nsdc_prefix}/var/spool ldapservice-XXXXXX.secret)
-tmp_script=$(mktemp -p ${nsdc_prefix}/var/spool createldapservice-XXXXXX.sh)
-tmp_log=$(mktemp -p ${nsdc_prefix}/var/spool createldapservice-XXXXXX.log)
+tmp_secret=$(mktemp -p /var/spool ldapservice-XXXXXX.secret)
+tmp_script=$(mktemp -p /var/spool createldapservice-XXXXXX.sh)
+tmp_log=$(mktemp -p /var/spool createldapservice-XXXXXX.log)
 trap "rm -f ${tmp_secret} ${tmp_script} ${tmp_log}" EXIT
 
 #
 # Prepare the shell script for nsdc
 #
 cat - >${tmp_script} <<EOF
-echo Log to ${tmp_log#${nsdc_prefix}}
-exec >${tmp_log#${nsdc_prefix}}
+echo Log to ${tmp_log}
+exec >${tmp_log}
 exec 2>&1
 set -x
 errors=0
 
 function get_dn()
 {
-  /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=\$1" dn | \
+  /usr/bin/nsdc-cmd /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "sAMAccountName=\$1" dn | \
     sed -n '/^dn: / { s/\r// ; p ; q }'
 }
 
 if [[ -z "\$(get_dn ldapservice)" ]]; then
-  samba-tool user create ldapservice \
+  /usr/bin/nsdc-cmd samba-tool user create ldapservice \
       --random-password \
       --must-change-at-next-login \
-      "--login-shell=/usr/bin/false" \
-      "--given-name=NethServer LDAP simple auth identity" \
+      --login-shell=/usr/bin/false \
+      --given-name=\'NethServer LDAP simple auth identity\' \
       --use-username-as-cn \
   || ((++errors))
 fi
 
 # set password never expires and deny access from any workstation:
-/usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
+/usr/bin/nsdc-cmd /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
 changetype: modify
 replace: userWorkstations
 userWorkstations: /
@@ -83,7 +82,7 @@ if [[ \$? != 0 ]]; then
   ((++errors))
 fi
 
-samba-tool user setpassword ldapservice "--newpassword=\$(< ${tmp_secret#${nsdc_prefix}})" || ((++errors))
+/usr/bin/nsdc-cmd samba-tool user setpassword ldapservice --newpassword="\$(< ${tmp_secret})" || ((++errors))
 
 if ((errors > 0)); then
   exit 1
@@ -101,14 +100,14 @@ function systemd_run_sync()
   ExecMainStatus=3
   unit_name=$(mktemp -u -d create-ldapservice-XXXXXX)
 
-  systemd-run --unit=${unit_name} --remain-after-exit -M nsdc "$@"
+  systemd-run --unit=${unit_name} --remain-after-exit "$@"
   if [[ $? != 0 ]]; then
     echo "[ERROR] failed to spawn ${unit_name}"
     return 6
   fi
 
   # Wait until the unit is considered active:
-  while ! systemctl is-active -q -M nsdc ${unit_name}; do
+  while ! systemctl is-active -q ${unit_name}; do
     if ((++attempts > 5 )); then
       echo "[ERROR] cannot find the ${unit_name} active task"
       return 2
@@ -118,7 +117,7 @@ function systemd_run_sync()
 
   # Poll the unit exit code
   attempts=0
-  while eval $(systemctl show -M nsdc ${unit_name} -p ExecMainStatus -p MainPID); do
+  while eval $(systemctl show ${unit_name} -p ExecMainStatus -p MainPID); do
     if((++attempts > 15)); then
       echo "[ERROR] reached maximum task execution time"
       return 4
@@ -129,11 +128,11 @@ function systemd_run_sync()
   done
 
   # Destroy systemd unit state (see manpage for --remain-after-exit flag)
-  systemctl stop -M nsdc ${unit_name} || :
+  systemctl stop ${unit_name} || :
   return $ExecMainStatus
 }
 
-systemd_run_sync /usr/bin/bash ${tmp_script#${nsdc_prefix}}
+systemd_run_sync /usr/bin/bash ${tmp_script}
 
 retval=$?
 if [[ $retval == 0 ]]; then

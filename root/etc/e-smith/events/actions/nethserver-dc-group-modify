@@ -34,7 +34,7 @@ my @newmembers = @ARGV;
 my @oldmembers;
 
 #get group users
-open(PS, "expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group listmembers \"$groupName\"; expect { exit 0 }' |");
+open(PS, "/usr/bin/nsdc-cmd /usr/bin/samba-tool group listmembers \"$groupName\" |");
 while ( <PS> )
 {
     $_ =~  s/^\s+//;;
@@ -67,7 +67,7 @@ foreach my $element (@oldmembers) {
 #remove members
 if (@membersToRemove){
     my $membersToRemove = join (",", @membersToRemove);
-    system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group removemembers "$groupName" "$membersToRemove"; expect "Removed members" { exit 0}; exit 3'));
+    system(qq(/usr/bin/nsdc-cmd /usr/bin/samba-tool group removemembers "$groupName" "$membersToRemove"));
     if($? != 0) {
         $errors ++;
     }
@@ -76,7 +76,7 @@ if (@membersToRemove){
 #add members
 if (@membersToAdd){
     my $membersToAdd = join (",", @membersToAdd);
-    system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "$groupName" "$membersToAdd"; expect "Added members" { exit 0 }; exit 3'));
+    system(qq(/usr/bin/nsdc-cmd /usr/bin/samba-tool group addmembers "$groupName" "$membersToAdd"));
     if($? != 0) {
         $errors ++;
     }

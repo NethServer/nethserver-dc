@@ -14,6 +14,7 @@ BuildRequires:  systemd
 Requires: nethserver-sssd > 1.1.9-1.ns7
 Requires: expect
 Requires: rsync
+Requires: dropbear
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -32,6 +33,7 @@ perl createlinks
 %install
 rm -rf %{buildroot}
 mkdir -p root/usr/lib/nethserver-dc
+mkdir -p root/var/lib/nethserver/nsdc
 mv %{SOURCE1} root/usr/lib/nethserver-dc
 (cd root   ; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} %{buildroot} | \
@@ -54,6 +56,7 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %doc COPYING
 %doc README.rst
 %dir %{_nseventsdir}/%{name}-update
+%dir /var/lib/nethserver/nsdc
 %attr(0644,root,root) %config(noreplace) /etc/sysconfig/nsdc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 

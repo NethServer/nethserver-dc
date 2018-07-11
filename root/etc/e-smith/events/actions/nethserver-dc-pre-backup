@@ -24,12 +24,7 @@ for DB in $(find /var/lib/machines/nsdc/var/lib/samba/ -name "*.[t,l]db"); do
     if [[ "${DB#/var/lib/machines/nsdc}" == "/var/lib/samba/private/netlogon_creds_cli.tdb" ]]; then
         continue;
     fi
-    expect -f - > /dev/null <<EOF
-        spawn /usr/bin/systemd-run -M nsdc -t -q /usr/bin/tdbbackup "${DB#/var/lib/machines/nsdc}"
-        expect {
-           eof { exit 0 }
-        }
-EOF
+    /usr/bin/nsdc-cmd /usr/bin/tdbbackup "${DB#/var/lib/machines/nsdc}"
     if [ ! -f ${DB}.bak ]; then
         echo "Error while backing up ${DB}!"
         ERROR=1
