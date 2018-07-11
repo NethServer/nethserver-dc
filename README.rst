@@ -44,10 +44,36 @@ nethserver-dc-save event
 
 Realmd writes a lot of information on the system journal. See `journalctl` command. 
 
+Access the container
+--------------------
+
+The ``nsdc`` container can be accessed using systemd or an SSH connection.
+
+SSH
+^^^
+
+SSH access is granted using RSA key authentication. During container provisioning,
+a new RSA key (``/var/lib/nethserver/nsdc/nsdc.key``) is generated and exchanged between host and guest.
+The package uses Dropbear SSH lightweight implementation.
+
+To execute a command inside the container use ``nsdc-cmd`` wrapper.
+The wrapper will execute the command and return the output (stderr is redirected to stdout).
+
+Example: ::
+
+  nsdc-cmd ls /etc
+
+
+Systemd
+^^^^^^^
+
 To have a shell inside the ``nsdc`` container, you can run ::
 
  # systemd-run -M nsdc -t /bin/bash
 
+Always make sure to close the connection to systemd to avoid errors like: ::
+
+  Failed to get machine PTY: No such file or directory
 
 Manual Join
 -----------
@@ -95,7 +121,7 @@ Factory reset
 -------------
 
 The "Start DC" procedure from the "Accounts provider" page is designed for a
-single run.  If it fails, reinstalling the whole server can be avoided by
+single run.  If it fails, re-installing the whole server can be avoided by
 running the following command ::
 
     signal-event nethserver-dc-factory-reset
@@ -103,7 +129,7 @@ running the following command ::
 The command cleans up the DC state and prepare it for new provisioning run.
 **Any existing user and group account is erased**.
 
-If a full DC reinstall is desired, after factory reset event, run also ::
+If a full DC re-install is desired, after factory reset event, run also ::
 
     rm -rf /var/lib/machines/nsdc
 
@@ -114,7 +140,7 @@ Execute: ::
 
   signal-event nethserver-sssd-remove-provider
 
-Upgrade the containter
+Upgrade the container
 ----------------------
 
 The upgrade procedure will:
@@ -137,7 +163,7 @@ Changing the IP address of DC
     Before applying this procedure, read carefully the `official Samba wiki page
     <https://wiki.samba.org/index.php/Changing_the_IP_Address_of_a_Samba_AD_DC>`_.
 
-The IP address of nsdc containter must be in the same network of the bridged green interface.
+The IP address of nsdc container must be in the same network of the bridged green interface.
 If needed, first change the address of the green interface, then proceed with the following.
 
 Example, change the network address:
@@ -161,7 +187,7 @@ Alternate UPN suffix
 --------------------
 
 The default UPN (User Principal Name) suffix for a user account is the SSSD realm, but
-the nsdc containter is configured to use also an extra UPN suffix set
+the nsdc container is configured to use also an extra UPN suffix set
 to the FQDN of the host machine.
 
 Example:
