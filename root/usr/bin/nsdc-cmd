@@ -20,10 +20,20 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-# Execute a command inside the containter
+# Execute a command inside the container
+#  - redirect all stderr to stdout
+#  - remove dbclient warning output: first 2 lines
+cmd () {
+    LANG=C dbclient -yy -i /var/lib/nethserver/nsdc/nsdc.key root@"$(/sbin/e-smith/config getprop nsdc IpAddress)" "$@" 2>&1 | tail -n+3
+}
 
-. /usr/share/nethserver-dc/nsdc-functions
+# Execute a command inside the container
+#   - raw command, no output/input management is performed
+cmd_raw () {
+    LANG=C dbclient -yy -i /var/lib/nethserver/nsdc/nsdc.key root@"$(/sbin/e-smith/config getprop nsdc IpAddress)" "$@"
+}
 
+# Display help and exit
 function help
 {
     echo "Usage: $0 [-r] <cmd> [<args1> ... <argsN>]"
@@ -52,7 +62,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ $raw -eq 1 ]; then
-    cmd_raw $@
+    cmd_raw "$@"
 else
-    cmd $@
+    cmd "$@"
 fi
