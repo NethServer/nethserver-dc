@@ -1,0 +1,79 @@
+#!/usr/bin/python -u
+
+#
+# Copyright (C) 2018 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# This python script runs with "-u" (unbuffered i/o) flag!
+
+import sys
+import socket
+import struct
+import json
+import subprocess
+import os
+
+#
+# recvall -- Receive exactly "btr" (bytes-to-read) from socket "so"
+#
+def recvall(so, btr):
+    buf = ''
+    while btr > 0:
+        chunk = so.recv(min(btr, 4096))
+        btr -= len(chunk)
+        buf += chunk
+    return buf
+
+# systemd always passes the socket as fd 3
+so = socket.fromfd(3, socket.AF_UNIX, socket.SOCK_STREAM)
+os.close(3)
+
+#
+# 1. read a message from the socket. The message has a four bytes header
+#    representing the payload size. The message itself is a JSON string 
+#    representing the command to run and its arguments.
+#
+payload_sz = struct.unpack('>I', recvall(so, struct.calcsize('>I')))[0]
+payload = recvall(so, payload_sz)
+args = json.loads(payload)
+
+#
+# 2. spawn the command as a child process. Consume its output by forwarding
+#    it to the socket client.
+#
+try:
+    capture_stderr = None if not args['stderr'] else subprocess.STDOUT
+    child = subprocess.Popen(args['cmd'], stdin=None, stdout=subprocess.PIPE, stderr=capture_stderr)
+
+    while True:
+        data = child.stdout.read()
+        so.sendall(data)
+        if not data:
+            break
+
+    child_exit = child.wait()
+
+except Exception as e:
+    sys.stderr.write("[ERROR] the command '%s' failed: %s" % (args['cmd'][0], e))
+    child_exit = 254
+
+#
+# 3. at the end, send the command exit code to the socket client
+#
+so.sendall(chr(child_exit))

@@ -45,3 +45,7 @@ cp -vfp ${nsroot}/var/lib/samba/private/krb5.conf ${nsroot}/etc/krb5.conf
 
 # Restart the Samba DC service in nsdc container
 systemctl -M nsdc restart samba
+
+# Enable and start nsdc-run.socket
+systemctl -M nsdc enable --now nsdc-run.socket
+cp -af /usr/libexec/nethserver/nsdc-run-worker ${nsroot}/usr/libexec/nsdc-run-worker

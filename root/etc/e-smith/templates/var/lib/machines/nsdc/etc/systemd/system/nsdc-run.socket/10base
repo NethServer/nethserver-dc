@@ -1,0 +1,11 @@
+[Unit]
+Description=NSDC container remote command server
+Documentation=https://github.com/NethServer/nethserver-dc/blob/master/README.rst
+
+[Socket]
+Accept=true
+SocketMode=0600
+ListenStream=/var/lib/misc/nsdc-run.sock
+
+[Install]
+WantedBy=sockets.target

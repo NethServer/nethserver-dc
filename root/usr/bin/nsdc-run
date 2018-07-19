@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+#
+# Copyright (C) 2018 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+import json
+import sys
+import socket
+import struct
+import argparse
+
+ap = argparse.ArgumentParser(
+    description = "Run the given command remotely, in NSDC container",
+    usage = "%(prog)s [-e] <cmd> [arg...]",
+)
+ap.add_argument('cmd', nargs='+', help='the path to an executable command in NSDC filesystem')
+ap.add_argument('-e', '--capture-stderr', action='store_true', help='grab the command stderr too')
+args = ap.parse_args()
+
+so = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+so.connect('/var/lib/machines/nsdc/var/lib/misc/nsdc-run.sock')
+
+#
+# 1. Prepare and send a message composed by the size header and the payload
+#    The size header is a four bytes binary integer in BE (network) form
+#
+payload = json.dumps({ 'cmd': args.cmd, 'stderr': args.capture_stderr })
+payload_sz = struct.pack('>I', len(payload))
+so.sendall(payload_sz + payload)
+
+#
+# 2. Receive the response message. The last byte transferred represents the
+#    remote command exit code
+#
+buf_sz = 4096
+last_char = ''
+while True:
+    buf = so.recv(buf_sz)
+    if not buf:
+        break
+
+    sys.stdout.write(last_char + buf[:-1])
+    last_char = buf[-1]
+
+if(last_char):
+    sys.exit(ord(last_char))
+else:
+    sys.stderr.write("[ERROR] nsdc-cmd failed to communicate with server\n")
+    sys.exit(253)

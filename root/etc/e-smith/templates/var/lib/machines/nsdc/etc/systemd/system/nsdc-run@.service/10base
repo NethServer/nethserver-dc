@@ -1,0 +1,6 @@
+[Unit]
+Description=nsdc-run worker process
+Documentation=https://github.com/NethServer/nethserver-dc/blob/master/README.rst
+
+[Service]
+ExecStart=/usr/libexec/nsdc-run-worker
