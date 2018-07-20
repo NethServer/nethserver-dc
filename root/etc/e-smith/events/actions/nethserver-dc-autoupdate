@@ -21,8 +21,10 @@
 #
 
 status=$(/sbin/e-smith/config getprop nsdc status)
+nsroot=/var/lib/machines/nsdc
 
-if [[ "${status}" == "disabled" ]]; then
+# Skip this action if nsdc is not installed at all (first install)
+if [[ ! -x ${nsroot}/usr/sbin/samba || "${status}" == "disabled" ]]; then
     exit 0
 fi
 
@@ -33,7 +35,7 @@ if [[ "${current}" != "${available}" && "${newer}" == "${available}" ]]; then
     echo "[NOTICE] Upgrade ns-samba version $available"
     /sbin/e-smith/signal-event nethserver-dc-upgrade
     exit $?
-elif [[ ! -x /var/lib/machines/nsdc/usr/libexec/nsdc-run-worker ]]; then
+elif [[ ! -x ${nsroot}/usr/libexec/nsdc-run-worker ]]; then
     echo "[NOTICE] Configure and start the nsdc-run service for the first time"
     /sbin/e-smith/signal-event nethserver-dc-upgrade
     exit $?
