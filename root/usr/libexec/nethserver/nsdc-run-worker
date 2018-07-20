@@ -59,7 +59,9 @@ args = json.loads(payload)
 #
 try:
     capture_stderr = None if not args['stderr'] else subprocess.STDOUT
-    child = subprocess.Popen(args['cmd'], stdin=None, stdout=subprocess.PIPE, stderr=capture_stderr)
+    # Convert unicode strings to plain strings, for execv()
+    encoded_cmd_array = map(lambda x: x.encode('utf-8'), args['cmd'])
+    child = subprocess.Popen(encoded_cmd_array, stdin=None, stdout=subprocess.PIPE, stderr=capture_stderr)
 
     while True:
         data = child.stdout.read()
