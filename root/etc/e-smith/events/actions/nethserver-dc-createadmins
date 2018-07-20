@@ -36,13 +36,7 @@ fi
 /etc/e-smith/events/actions/nethserver-dc-user-lock $EVENT "$ADMIN@$DOMAIN"
 
 # add the admin account to Domain Admins group
-expect <<EOF
-spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/samba-tool group addmembers "Domain Admins" "$ADMIN"
-expect "Added members" { exit 0 }
-exit 3
-EOF
-
-
+nsdc-run -e -- /usr/bin/samba-tool group addmembers "Domain Admins" "$ADMIN"
 
 # Lock the administrator account
 /etc/e-smith/events/actions/nethserver-dc-user-lock $EVENT "administrator@$DOMAIN"
