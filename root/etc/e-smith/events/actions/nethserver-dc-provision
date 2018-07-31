@@ -22,7 +22,8 @@
 
 nsroot=/var/lib/machines/nsdc
 
-systemctl --root=${nsroot} enable samba-provision.service samba.service ntpd.service
+systemctl --root=${nsroot} enable samba-provision.service samba.service ntpd.service nsdc-run.socket
+cp -af /usr/libexec/nethserver/nsdc-run-worker ${nsroot}/usr/libexec/nsdc-run-worker
 
 ProvisionType=$(/sbin/e-smith/config getprop nsdc ProvisionType)
 

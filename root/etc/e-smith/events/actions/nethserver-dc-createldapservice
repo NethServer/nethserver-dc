@@ -93,47 +93,7 @@ EOF
 # Generate (if it does not already exist) and store the ldapservice password
 perl -MNethServer::Password -e "print NethServer::Password::store(\"ldapservice\")" > ${tmp_secret}
 
-function systemd_run_sync()
-{
-  local unit_name attempts 
-  # systemd properties
-  local ExecMainStatus MainPID
-  ExecMainStatus=3
-  unit_name=$(mktemp -u -d create-ldapservice-XXXXXX)
-
-  systemd-run --unit=${unit_name} --remain-after-exit -M nsdc "$@"
-  if [[ $? != 0 ]]; then
-    echo "[ERROR] failed to spawn ${unit_name}"
-    return 6
-  fi
-
-  # Wait until the unit is considered active:
-  while ! systemctl is-active -q -M nsdc ${unit_name}; do
-    if ((++attempts > 5 )); then
-      echo "[ERROR] cannot find the ${unit_name} active task"
-      return 2
-    fi
-    sleep 1
-  done
-
-  # Poll the unit exit code
-  attempts=0
-  while eval $(systemctl show -M nsdc ${unit_name} -p ExecMainStatus -p MainPID); do
-    if((++attempts > 15)); then
-      echo "[ERROR] reached maximum task execution time"
-      return 4
-    elif [[ $MainPID == 0 ]]; then
-      break;
-    fi
-    sleep 2
-  done
-
-  # Destroy systemd unit state (see manpage for --remain-after-exit flag)
-  systemctl stop -M nsdc ${unit_name} || :
-  return $ExecMainStatus
-}
-
-systemd_run_sync /usr/bin/bash ${tmp_script#${nsdc_prefix}}
+nsdc-run -e -- /usr/bin/bash ${tmp_script#${nsdc_prefix}}
 
 retval=$?
 if [[ $retval == 0 ]]; then

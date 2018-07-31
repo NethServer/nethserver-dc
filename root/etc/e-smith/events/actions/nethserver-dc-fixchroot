@@ -27,7 +27,6 @@ if [[ "${provider}" != "ad" ]]; then
     exit 0
 fi
 
-
 for package in bind-utils ntp
 do
     if ! rpm -q --root=${nsroot} $package >/dev/null; then

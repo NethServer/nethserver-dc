@@ -80,7 +80,7 @@ EOF
 
 # Update DNS records
 for((a=0; a < 60; a++)); do
-    systemd-run -q -t -M nsdc /usr/sbin/samba_dnsupdate --verbose | grep -q 'No DNS updates needed'
+    nsdc-run -e -- /usr/sbin/samba_dnsupdate --verbose | grep -q 'No DNS updates needed'
     if [ $? -eq 0 ]; then
        break
     fi

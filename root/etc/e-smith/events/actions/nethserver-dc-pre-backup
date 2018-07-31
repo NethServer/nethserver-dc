@@ -19,20 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
-ERROR=0
-for DB in $(find /var/lib/machines/nsdc/var/lib/samba/ -name "*.[t,l]db"); do
-    if [[ "${DB#/var/lib/machines/nsdc}" == "/var/lib/samba/private/netlogon_creds_cli.tdb" ]]; then
-        continue;
-    fi
-    expect -f - > /dev/null <<EOF
-        spawn /usr/bin/systemd-run -M nsdc -t -q /usr/bin/tdbbackup "${DB#/var/lib/machines/nsdc}"
-        expect {
-           eof { exit 0 }
-        }
-EOF
-    if [ ! -f ${DB}.bak ]; then
-        echo "Error while backing up ${DB}!"
-        ERROR=1
-    fi
-done
-exit $ERROR
+
+cd /var/lib/machines/nsdc/
+nsdc-run -e -- tdbbackup $(find var/lib/samba/ -name "*.[t,l]db" | sed -e '\|^var/lib/samba/private/netlogon_creds_cli.tdb$| d ; s/^/\//')

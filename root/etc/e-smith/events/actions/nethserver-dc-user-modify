@@ -37,7 +37,7 @@ if(! defined ($userName)) {
 $userName =~ s/@.*//;
 
 #Modify user FullName
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/pdbedit -u "$userName" "--fullname=$FullName"; expect "Unix username:" { exit 0 }; exit 3' >/dev/null));
+system(qw(nsdc-run -e -- /usr/bin/pdbedit -u), $userName, "--fullname=$FullName");
 if ($? != 0) {
     die("[ERROR] User $userName modification failed\n");
 }
@@ -49,7 +49,7 @@ my $fileFullPath = File::Temp->new(
 );
 
 #retrieve the dn from samaccountname
-my $dn = qx(systemd-run -M nsdc -q -t /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
+my $dn = qx(nsdc-run -- /usr/bin/ldbsearch -H /var/lib/samba/private/sam.ldb "samaccountname=$userName" dn | sed -n '/^dn: / { s/\r// ; p ; q }');
 chomp $dn;
 
 #print the content
@@ -67,9 +67,7 @@ my $fileRelativePath = $fileFullPath;
 $fileRelativePath =~ s|/var/lib/machines/nsdc||;
 
 #modif the samba LDAP
-system(qq(expect -c 'spawn -noecho /usr/bin/systemd-run -M nsdc -q -t /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb $fileRelativePath;
-    expect "Modified 1 records successfully" { exit 0 }; exit 3' >/dev/null));
-
+system(qw(nsdc-run -- /usr/bin/ldbmodify -H /var/lib/samba/private/sam.ldb), $fileRelativePath);
 if ($? != 0) {
     die("[ERROR] User $userName shell modification failed\n");
 }
