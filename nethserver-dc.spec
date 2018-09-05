@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.5.4
+Version: 1.5.5
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed Sep 05 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.5-1
+- Bump ns-samba 4.7.10 -- NethServer/nethserver-dc#86
+
 * Thu Aug 02 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.4-1
 - DC: randomly failed actions - Bug NethServer/dev#5544
 - Added nsdc-run command
