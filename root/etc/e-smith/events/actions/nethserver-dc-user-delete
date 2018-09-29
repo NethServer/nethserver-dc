@@ -22,6 +22,7 @@
 
 use strict;
 use Errno;
+use File::Path qw(remove_tree);
 
 my $event = shift;
 my $userName = shift;
@@ -39,3 +40,8 @@ if ($? != 0) {
     die("[ERROR] User $userName deletion failed\n");
 }
 
+# Remove home
+if ( -d "/var/lib/nethserver/home/$userName") {
+    remove_tree ("/var/lib/nethserver/home/$userName") || 
+        die "[ERROR] The home of $userName cannot be removed: $?";
+}
