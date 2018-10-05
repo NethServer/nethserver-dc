@@ -41,8 +41,8 @@ rm -f ${destDir}/srv/*
 
 /sbin/e-smith/signal-event nethserver-sssd-leave || (( errors ++ ))
 
-if systemctl --quiet is-active nsdc; then
-    systemctl stop nsdc || (( errors ++ ))
+if systemctl -M nsdc --quiet is-active samba; then
+    systemctl -M nsdc stop samba || (( errors ++ ))
 fi
 
 rm -f ${destDir}/etc/samba/smb.conf
