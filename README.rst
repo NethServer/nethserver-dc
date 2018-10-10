@@ -34,6 +34,12 @@ nethserver-dc-save event
     The realm and domain name are set as described in the ``newdomain`` provision 
     type.
 
+  - ``sme8migration``: this provision procedure is driven by
+    ``nethserver-dc-migrate`` action. It requires a running NSDC, provisioned as
+    ``newdomain``. It copies Samba 3 files from the migration source directory
+    to the NSDC chroot, then restarts the ``samba-provision`` and ``samba``
+    services in the running NSDC container.
+
 * it creates a network bridge if needed, or select an existing one and save it in nsdc bridge db prop (`nethserver-dc-create-bridge` action)
 
 * it waits for the machine to come up (`nethserver-dc-waitstart`)
