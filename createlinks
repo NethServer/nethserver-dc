@@ -67,7 +67,7 @@ my @templates = (qw(
 event_templates('nethserver-dc-save', @templates);
 
 event_services('nethserver-dc-save', qw(
-   nsdc restart
+   nsdc reload
    dnsmasq restart
 ));
 

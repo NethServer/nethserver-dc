@@ -96,7 +96,7 @@ mv /var/lib/machines/nsdc/var/lib/samba/private/krb5.conf.ori /var/lib/machines/
 rm -f /var/lib/sss/pubconf/kdcinfo.$domain
 
 # Check the new ip address
-if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddr}" &>/dev/null; then
+if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddress}" &>/dev/null; then
     echo "[WARN] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
 fi
 

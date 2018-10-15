@@ -1,6 +1,7 @@
 [Unit]
 Description=Domain controller provisioning
 Before=samba.service
+After=network.target
 ConditionPathExists=!/etc/samba/smb.conf
 ConditionPathExists=!/var/lib/samba/private/krb5.conf
 
