@@ -14,6 +14,7 @@ Environment=OPTIONS=
 Environment=BRIDGE=brdef
 EnvironmentFile=-/etc/sysconfig/nsdc
 ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --network-bridge=${BRIDGE} --machine=nsdc ${OPTIONS}
+ExecReload=/usr/bin/systemctl -M nsdc daemon-reload
 ExecReload=/usr/bin/systemctl -M nsdc restart samba-provision.service samba.service
 KillMode=mixed
 Type=notify
