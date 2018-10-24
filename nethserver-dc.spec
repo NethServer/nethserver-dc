@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.5.6
+Version: 1.5.7
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,10 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Wed Oct 24 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.7-1
+- Fix sme8migration provision failure - NethServer/nethserver-dc#90
+- Fix sme8migration provision failure - NethServer/nethserver-dc#89
+
 * Fri Oct 05 2018 Davide Principi <davide.principi@nethesis.it> - 1.5.6-1
 - Home user deletion - NethServer/dev#5594
 - Avoid NSDC container full restart - NethServer/nethserver-dc#88
