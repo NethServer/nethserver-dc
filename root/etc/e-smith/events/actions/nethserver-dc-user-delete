@@ -41,7 +41,8 @@ if ($? != 0) {
 }
 
 # Remove home
-if ( -d "/var/lib/nethserver/home/$userName") {
+if (( -d "/var/lib/nethserver/home/$userName") &&
+   (($sysconfig{'KeepUserData'} ||'disabled') eq 'disabled'))	{
     remove_tree ("/var/lib/nethserver/home/$userName") || 
         die "[ERROR] The home of $userName cannot be removed: $?";
 }
