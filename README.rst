@@ -208,3 +208,33 @@ References:
 
 - https://technet.microsoft.com/en-us/library/cc772007%28v=ws.11%29.aspx
 - https://msdn.microsoft.com/en-us/library/ms680537%28v=vs.85%29.aspx
+
+
+ns-samba binary build
+---------------------
+
+0. Clone the git repo at https://github.com/NethServer/ns-samba, enter its directory
+
+1. Download pristine sources from the Samba project ::
+
+    wget https://download.samba.org/pub/samba/stable/samba-4.8.6.tar.gz https://download.samba.org/pub/samba/stable/samba-4.8.6.tar.asc
+
+2. Check the sources signature ::
+
+    gunzip -c samba-4.8.6.tar.gz | gpg --verify samba-4.8.6.tar.asc -
+
+3. Bump the source hash sum ::
+
+    sha1sum samba-4.8.6.tar.gz > SHA1SUM
+
+4. Edit ``ns-samba.spec`` to fix version references and ``%changelog`` section
+
+6. Commit changes and add (signed) tag (i.e. ``4.8.6``)
+
+7. Push commit and tag to remote git repository to start the automated x86_64 build
+
+8. Once the automated build has finished successfully, fill the new relase page here: https://github.com/NethServer/ns-samba/releases
+
+9. Copy the RPM URL to the local ``nethserver-dc.spec`` file
+
+10. Update SHA1SUM with the new RPM hash sum
