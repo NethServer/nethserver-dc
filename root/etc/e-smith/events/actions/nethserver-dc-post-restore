@@ -24,4 +24,4 @@ prefix=/var/lib/machines/nsdc
 
 find ${prefix}/var/lib/samba -type f -name '*.[l,t]db.bak' -print0 | while read -d $'\0' f ; do mv -f "$f" "${f%.bak}" ; done
 cp -vfp ${prefix}/var/lib/samba/private/krb5.conf ${prefix}/etc/krb5.conf
-systemctl --root=${prefix} enable samba.service ntpd.service
+systemctl --root=${prefix} enable samba.service ntpd.service nsdc-run.socket
