@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 #
-# Copyright (C) 2013 Nethesis S.r.l.
+# Copyright (C) 2018 Nethesis S.r.l.
 # http://www.nethesis.it - support@nethesis.it
 #
 # This script is part of NethServer.
@@ -34,8 +34,8 @@ if(! defined ($userName)) {
 #accept user@domain format
 $userName =~ s/@.*//;
 
-#Delete user
-system(qw(nsdc-run -e -- /usr/bin/samba-tool user delete), $userName);
-if ($? != 0) {
-    die("[ERROR] User $userName deletion failed\n");
+# Remove home
+if ( -d "/var/lib/nethserver/home/$userName") {
+    remove_tree ("/var/lib/nethserver/home/$userName") ||
+        die "[ERROR] The home of $userName cannot be removed: $?";
 }

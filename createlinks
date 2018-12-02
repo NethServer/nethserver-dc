@@ -101,6 +101,12 @@ event_actions('user-create', qw(
 # actions for user-delete
 #--------------------------------------------------
 event_link("nethserver-dc-user-delete", "user-delete", "40");
+event_link("nethserver-dc-user-delete-cleanup", "user-delete", "50");
+
+#--------------------------------------------------
+# actions for user-cleanup
+#--------------------------------------------------
+event_link("nethserver-dc-user-cleanup", "user-cleanup", "10");
 
 #--------------------------------------------------
 # actions for user-modify
