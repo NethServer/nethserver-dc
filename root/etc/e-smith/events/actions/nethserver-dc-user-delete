@@ -39,9 +39,3 @@ system(qw(nsdc-run -e -- /usr/bin/samba-tool user delete), $userName);
 if ($? != 0) {
     die("[ERROR] User $userName deletion failed\n");
 }
-
-# Remove home
-if ( -d "/var/lib/nethserver/home/$userName") {
-    remove_tree ("/var/lib/nethserver/home/$userName") || 
-        die "[ERROR] The home of $userName cannot be removed: $?";
-}
