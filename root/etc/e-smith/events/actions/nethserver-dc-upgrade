@@ -31,6 +31,7 @@ fi
 # Synchronize YUM configuration
 rsync -ai --delete /etc/yum.repos.d/ ${nsroot}/etc/yum.repos.d
 rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
+rsync -ai --delete /var/lib/yum/repos/ ${nsroot}/var/lib/yum/repos
 
 # Upgrade chroot base system & samba package
 yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.ns7.x86_64.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
