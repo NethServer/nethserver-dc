@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.6.0
+Version: 1.6.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Fri Dec 07 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.1-1
+- Detach user-cleanup event from user-delete - NethServer/dev#5624
+
 * Mon Dec 03 2018 Davide Principi <davide.principi@nethesis.it> - 1.6.0-1
 - Samba DC 4.8.6 upgrade - NethServer/dev#5633
 - User management errors after disaster recovery - Bug NethServer/dev#5653
