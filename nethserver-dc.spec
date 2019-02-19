@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.6.2
+Version: 1.6.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue Feb 19 2019 Davide Principi <davide.principi@nethesis.it> - 1.6.3-1
+- Bump Samba 4.8.9 -- NethServer/ns-samba#98
+
 * Mon Dec 10 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.2-1
 - Account expired cannot change password - Bug NethServer/dev#5670
 
