@@ -50,5 +50,7 @@ done
 
 if (($needRestart > 0)); then
     echo "[NOTICE] nsdc Samba configuration changed. Restarting Samba Domain Controller..."
-    systemctl try-restart nsdc
+    systemctl stop nsdc
+    ip link delete dev vb-nsdc 2>/dev/null
+    systemctl start nsdc
 fi

@@ -59,6 +59,7 @@ done
 /sbin/e-smith/signal-event nethserver-dnsmasq-save
 
 # Start nsdc
+ip link delete dev vb-nsdc 2>/dev/null
 systemctl start nsdc
 
 /etc/e-smith/events/actions/nethserver-dc-waitstart
