@@ -1,5 +1,5 @@
 Name:           nethserver-dc
-Version: 1.6.3
+Version: 1.6.4
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -57,6 +57,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Mar 14 2019 Davide Principi <davide.principi@nethesis.it> - 1.6.4-1
+- DC down after bridge IP change - Bug NethServer/dev#5730
+
 * Tue Feb 19 2019 Davide Principi <davide.principi@nethesis.it> - 1.6.3-1
 - Bump Samba 4.8.9 -- NethServer/ns-samba#98
 
