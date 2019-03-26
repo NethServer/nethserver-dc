@@ -78,6 +78,7 @@ event_link("nethserver-dc-pre-restore", "pre-restore-config", "40");
 event_actions('post-restore-config', qw(
     nethserver-dc-install 01
     nethserver-dc-post-restore 40
+    nethserver-dc-sysvolreset 80
 ));
 event_templates('post-restore-config', @templates);
 
