@@ -2,8 +2,8 @@
 %global debug_package %{nil}
 
 # Naming of 32bit arm is a mess..
-%ifarch %{arm}
-%define source1_arch %{__isa_name}
+%ifarch armv7hl
+%define source1_arch armv7hl
 %else
 %define source1_arch %{_arch}
 %endif
