@@ -1,3 +1,13 @@
+# Do not try to package empty debug_package
+%global debug_package %{nil}
+
+# Naming of 32bit arm is a mess..
+%ifarch armv7hl
+%define source1_arch armv7hl
+%else
+%define source1_arch %{_arch}
+%endif
+
 Name:           nethserver-dc
 Version: 1.6.6
 Release: 1%{?dist}
@@ -6,7 +16,7 @@ Summary:        NethServer Domain Controller configuration
 License:        GPLv3+
 URL: %{url_prefix}/%{name}
 Source0:        %{name}-%{version}.tar.gz
-Source1:        https://github.com/NethServer/ns-samba/releases/download/4.8.12/ns-samba-4.8.12-1.ns7.x86_64.rpm
+Source1:        https://github.com/NethServer/ns-samba/releases/download/4.9.13/ns-samba-4.9.13-1.ns7.%{source1_arch}.rpm
 
 BuildRequires:  nethserver-devtools
 BuildRequires:  systemd
