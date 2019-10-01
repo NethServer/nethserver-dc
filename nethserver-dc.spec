@@ -9,7 +9,7 @@
 %endif
 
 Name:           nethserver-dc
-Version: 1.6.6
+Version: 1.7.0
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -67,6 +67,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue Oct 01 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.0-1
+- Samba DC 4.9.13 upgrade - NethServer/dev#5838
+
 * Wed May 22 2019 Davide Principi <davide.principi@nethesis.it> - 1.6.6-1
 - Bump Samba 4.8.12 -- NethServer/nethserver-dc#102
 
