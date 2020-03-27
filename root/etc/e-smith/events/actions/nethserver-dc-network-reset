@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2020 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+use warnings;
+use strict;
+use esmith::NetworksDB;
+use esmith::ConfigDB;
+
+my $ndb = esmith::NetworksDB->open();
+my $cdb = esmith::ConfigDB->open();
+
+# ARGV[0] is the name of the event
+# ARGV[1] is the first real parameter
+if (defined($ARGV[1]) && $ARGV[1] eq '--skip-network') {
+
+    # Disable nsdc if the bridge doesn't exists
+    my $br = $cdb->get_prop('nsdc', 'bridge');
+    if(!$ndb->get($br)) {
+        $cdb->set_prop('nsdc', 'status', 'disabled');
+        $cdb->set_prop('nsdc', 'bridge', '');
+    }
+}
