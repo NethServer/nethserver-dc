@@ -34,5 +34,6 @@ if (grep(/^--skip-network$/, @ARGV)) {
     if(!$ndb->get($br)) {
         $cdb->set_prop('nsdc', 'status', 'disabled');
         $cdb->set_prop('nsdc', 'bridge', '');
+        warn "[NOTICE] nsdc forced to status disabled due to --skip-network flag\n";
     }
 }
