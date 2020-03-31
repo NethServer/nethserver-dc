@@ -28,10 +28,7 @@ use esmith::ConfigDB;
 my $ndb = esmith::NetworksDB->open();
 my $cdb = esmith::ConfigDB->open();
 
-# ARGV[0] is the name of the event
-# ARGV[1] is the first real parameter
-if (defined($ARGV[1]) && $ARGV[1] eq '--skip-network') {
-
+if (grep(/^--skip-network$/, @ARGV)) {
     # Disable nsdc if the bridge doesn't exists
     my $br = $cdb->get_prop('nsdc', 'bridge');
     if(!$ndb->get($br)) {
