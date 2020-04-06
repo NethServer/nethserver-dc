@@ -113,7 +113,7 @@ rm -f /var/lib/sss/pubconf/kdcinfo.$domain
 
 # Check the new ip address
 if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddress}" &>/dev/null; then
-    echo "[WARN] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
+    echo "[WARNING] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
 fi
 
 systemctl restart dnsmasq
