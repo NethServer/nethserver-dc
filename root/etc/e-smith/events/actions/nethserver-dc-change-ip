@@ -23,6 +23,21 @@
 event=$1
 ipaddress=$2
 
+status=$(/sbin/e-smith/config getprop nsdc status)
+bridge=$(/sbin/e-smith/config getprop nsdc bridge)
+green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
+green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
+
+if [[ $status != 'enabled' ]]; then
+    echo "[NOTICE] nsdc is disabled"
+    exit 0
+fi
+
+if [[ -z $bridge ]]; then
+    echo "[ERROR] nsdc bridge is not configured"
+    exit 1
+fi
+
 if [ -z $ipaddress ]; then
     echo "[ERROR] No IP address given"
     exit 1
@@ -34,10 +49,6 @@ if systemctl -q is-active nsdc 2>/dev/null; then
 fi
 
 # Check if DC ip is inside the green network
-bridge=$(/sbin/e-smith/config getprop nsdc bridge)
-green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
-green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
-
 perl -e "use NetAddr::IP; \$n=NetAddr::IP->new('$ipaddress'); \$h=NetAddr::IP->new('$green_ipaddr', '$green_netmask'); exit ! \$n->within(\$h);"
 
 if [ $? -gt 0 ]; then
