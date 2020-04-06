@@ -22,6 +22,7 @@
 
 event=$1
 ipaddress=$2
+nsroot=/var/lib/machines/nsdc
 
 status=$(/sbin/e-smith/config getprop nsdc status)
 bridge=$(/sbin/e-smith/config getprop nsdc bridge)
@@ -72,6 +73,9 @@ done
 # Start nsdc
 ip link delete dev vb-nsdc 2>/dev/null
 systemctl start nsdc
+
+# Ensure the worker script is installed after a restore-config --skip-network
+cp -af /usr/libexec/nethserver/nsdc-run-worker ${nsroot}/usr/libexec/nsdc-run-worker
 
 /etc/e-smith/events/actions/nethserver-dc-waitstart
 
