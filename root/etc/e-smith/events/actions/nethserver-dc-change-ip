@@ -116,6 +116,7 @@ if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddress}" &>/dev/null; then
     echo "[WARN] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
 fi
 
+systemctl restart dnsmasq
 net cache flush
 if ! net ads testjoin >/dev/null; then
     echo "[ERROR] Join is invalid!"
