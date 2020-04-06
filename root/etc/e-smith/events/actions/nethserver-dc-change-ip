@@ -119,8 +119,7 @@ fi
 systemctl restart dnsmasq
 net cache flush
 if ! net ads testjoin >/dev/null; then
-    echo "[ERROR] Join is invalid!"
-    exit 1
+    echo "[WARNING] Join could be invalid!"
 fi
 
 exit 0
