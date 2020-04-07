@@ -22,6 +22,22 @@
 
 event=$1
 ipaddress=$2
+nsroot=/var/lib/machines/nsdc
+
+status=$(/sbin/e-smith/config getprop nsdc status)
+bridge=$(/sbin/e-smith/config getprop nsdc bridge)
+green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
+green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
+
+if [[ $status != 'enabled' ]]; then
+    echo "[NOTICE] nsdc is disabled"
+    exit 0
+fi
+
+if [[ -z $bridge ]]; then
+    echo "[ERROR] nsdc bridge is not configured"
+    exit 1
+fi
 
 if [ -z $ipaddress ]; then
     echo "[ERROR] No IP address given"
@@ -34,10 +50,6 @@ if systemctl -q is-active nsdc 2>/dev/null; then
 fi
 
 # Check if DC ip is inside the green network
-bridge=$(/sbin/e-smith/config getprop nsdc bridge)
-green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
-green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
-
 perl -e "use NetAddr::IP; \$n=NetAddr::IP->new('$ipaddress'); \$h=NetAddr::IP->new('$green_ipaddr', '$green_netmask'); exit ! \$n->within(\$h);"
 
 if [ $? -gt 0 ]; then
@@ -61,6 +73,9 @@ done
 # Start nsdc
 ip link delete dev vb-nsdc 2>/dev/null
 systemctl start nsdc
+
+# Ensure the worker script is installed after a restore-config --skip-network
+cp -af /usr/libexec/nethserver/nsdc-run-worker ${nsroot}/usr/libexec/nsdc-run-worker
 
 /etc/e-smith/events/actions/nethserver-dc-waitstart
 
@@ -98,13 +113,12 @@ rm -f /var/lib/sss/pubconf/kdcinfo.$domain
 
 # Check the new ip address
 if ! host -t SRV "_ldap._tcp.${domain}" "${ipaddress}" &>/dev/null; then
-    echo "[WARN] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
+    echo "[WARNING] The SRV '_ldap._tcp.${domain}' doesn't match with the new ip address '$ipaddress'"
 fi
 
 net cache flush
 if ! net ads testjoin >/dev/null; then
-    echo "[ERROR] Join is invalid!"
-    exit 1
+    echo "[WARNING] Join is invalid!"
 fi
 
 exit 0
