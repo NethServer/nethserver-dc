@@ -26,6 +26,7 @@ nsroot=/var/lib/machines/nsdc
 
 status=$(/sbin/e-smith/config getprop nsdc status)
 bridge=$(/sbin/e-smith/config getprop nsdc bridge)
+bridge_type=$(/sbin/e-smith/db networks gettype $bridge)
 green_ipaddr=$(/sbin/e-smith/db networks getprop $bridge ipaddr)
 green_netmask=$(/sbin/e-smith/db networks getprop $bridge netmask)
 
@@ -36,6 +37,11 @@ fi
 
 if [[ -z $bridge ]]; then
     echo "[ERROR] nsdc bridge is not configured"
+    exit 1
+fi
+
+if [[ -z $bridge_type ]]; then
+    echo "[ERROR] nsdc bridge '$bridge' does not exists"
     exit 1
 fi
 
