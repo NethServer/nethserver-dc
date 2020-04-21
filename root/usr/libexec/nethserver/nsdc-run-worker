@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 
 #
 # Copyright (C) 2018 Nethesis S.r.l.
@@ -33,12 +33,12 @@ import os
 # recvall -- Receive exactly "btr" (bytes-to-read) from socket "so"
 #
 def recvall(so, btr):
-    buf = ''
+    buf = []
     while btr > 0:
         chunk = so.recv(min(btr, 4096))
         btr -= len(chunk)
-        buf += chunk
-    return buf
+        buf.append(chunk)
+    return b''.join(buf)
 
 # systemd always passes the socket as fd 3
 so = socket.fromfd(3, socket.AF_UNIX, socket.SOCK_STREAM)
@@ -78,4 +78,4 @@ except Exception as e:
 #
 # 3. at the end, send the command exit code to the socket client
 #
-so.sendall(chr(child_exit))
+so.sendall(str(child_exit).encode('ascii'))

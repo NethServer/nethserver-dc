@@ -60,7 +60,7 @@ while True:
     last_char = buf[-1]
 
 if(last_char):
-    sys.exit(ord(last_char))
+    sys.exit(int(last_char))
 else:
     sys.stderr.write("[ERROR] nsdc-cmd failed to communicate with server\n")
     sys.exit(253)
