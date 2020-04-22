@@ -27,7 +27,7 @@ if [[ "${provider}" != "ad" ]]; then
     exit 0
 fi
 
-for package in bind-utils ntp
+for package in bind-utils ntp python36-dns
 do
     if ! rpm -q --root=${nsroot} $package >/dev/null; then
         echo "[NOTICE] Fixing nsdc chroot, by installing $package package"
