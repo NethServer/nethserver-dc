@@ -35,9 +35,9 @@ do
     fi
 done
 
-# Enable ntpd service
+# Enable and start ntpd service
 if ! systemctl --quiet -M nsdc is-active ntpd; then
-    systemctl -M nsdc enable ntpd
+    systemctl -M nsdc enable --now ntpd
 fi
 
 # Set ntpd permissions
