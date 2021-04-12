@@ -26,7 +26,7 @@ use esmith::Build::CreateLinks  qw(:all);
 event_actions('nethserver-dc-update', qw(
    initialize-default-databases 00
    nethserver-dc-autoupdate 50
-   nethserver-dc-firststart 95
+   nethserver-dc-firststart 94
    nethserver-dc-fixchroot 95
    nethserver-dc-createldapservice 96
    nethserver-dc-machine-grants 96
