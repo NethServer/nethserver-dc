@@ -209,18 +209,18 @@ References:
 - https://technet.microsoft.com/en-us/library/cc772007%28v=ws.11%29.aspx
 - https://msdn.microsoft.com/en-us/library/ms680537%28v=vs.85%29.aspx
 
-Enable password script
-----------------------
+Enable check password script
+----------------------------
 
-Edit the script ``/var/lib/machines/nsdc/etc/samba/smb.conf`` and add
+Edit ``/var/lib/machines/nsdc/etc/samba/smb.conf`` and add ::
 
     check password script = /usr/local/sbin/checkpassword.pl
 
-to the global section. Restart samba on the NSDC container ::
+to the global section. Restart samba on the NSDC container: ::
 
     systemctl -M nsdc restart samba
 
-The checks in the script can be adapted by variables on top of the script.
+The checks in the script can be adapted by editing the variables on top of the script.
 
 ns-samba binary build
 ---------------------
