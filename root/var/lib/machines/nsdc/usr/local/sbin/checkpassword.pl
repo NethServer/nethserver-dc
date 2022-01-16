@@ -1,18 +1,28 @@
 #!/usr/bin/perl -w
 # This Script will check password complexity
 # Got this script from https://www.mylinuxplace.com/tag/check-password-script/ and adapted it to work...
-$min_length=8;
-$min_upercase=1;
-$min_lowercase=1;
-$min_digits=1;
-$min_specialchar=1;
+
+# Check if password policy flag file exists
+if (-e "/srv/password-policy-none") {
+        $min_length=7;
+        $min_uppercase=0;
+        $min_lowercase=0;
+        $min_digits=0;
+        $min_specialchar=0;
+} else {
+        $min_length=7;
+        $min_uppercase=1;
+        $min_lowercase=1;
+        $min_digits=1;
+        $min_specialchar=1;
+}
 $specialchars='!,@,$,#,%,^,&,*,(,),-,_,+,=';
 # get the password from standard input ( possible to pipe )
 $str_pass=<STDIN>;
 # now lets start check and update the counters is we find something
 # but first lets set all counters to zero
 $ctr_length=-1;
-$ctr_upercase=0;
+$ctr_uppercase=0;
 $ctr_lowercase=0;
 $ctr_digits=0;
 $ctr_specialcar=0;
@@ -24,7 +34,7 @@ foreach $pass_char (@array_pass)
         # check uppercase
         if($pass_char =~ /[A-Z]/)
         {
-                $ctr_upercase++;
+                $ctr_uppercase++;
         }
 	# check lowercase
         elsif($pass_char =~ /[a-z]/)
@@ -48,10 +58,10 @@ if($ctr_length<$min_length)
         print "Too short, minimum $min_length and got $ctr_length \n";
         exit 1;
 }
-# check if we reached minimal UPER case
-if($ctr_upercase<$min_upercase)
+# check if we reached minimal UPPER case
+if($ctr_uppercase<$min_uppercase)
 {
-        print "Not enough uppercase, minimum $min_upercase and got $ctr_upercase \n";
+        print "Not enough uppercase, minimum $min_uppercase and got $ctr_uppercase \n";
         exit 2;
 }
 # check if we reached minimal lower case

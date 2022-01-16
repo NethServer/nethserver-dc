@@ -212,6 +212,8 @@ References:
 Enable check password script
 ----------------------------
 
+This manual fix is only needed for old installations.
+
 Edit ``/var/lib/machines/nsdc/etc/samba/smb.conf`` and add ::
 
     check password script = /usr/local/sbin/checkpassword.pl
