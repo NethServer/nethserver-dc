@@ -222,7 +222,9 @@ to the global section. Restart samba on the NSDC container: ::
 
     systemctl -M nsdc restart samba
 
-The checks in the script can be adapted by editing the variables on top of the script.
+Apply the current system password policy to the Samba DC: ::
+
+    signal-event password-policy-update
 
 ns-samba binary build
 ---------------------
