@@ -209,6 +209,22 @@ References:
 - https://technet.microsoft.com/en-us/library/cc772007%28v=ws.11%29.aspx
 - https://msdn.microsoft.com/en-us/library/ms680537%28v=vs.85%29.aspx
 
+Enable check password script
+----------------------------
+
+This manual fix is only needed for old installations.
+
+Edit ``/var/lib/machines/nsdc/etc/samba/smb.conf`` and add ::
+
+    check password script = /usr/local/sbin/checkpassword.pl
+
+to the global section. Restart samba on the NSDC container: ::
+
+    systemctl -M nsdc restart samba
+
+Apply the current system password policy to the Samba DC: ::
+
+    signal-event password-policy-update
 
 ns-samba binary build
 ---------------------

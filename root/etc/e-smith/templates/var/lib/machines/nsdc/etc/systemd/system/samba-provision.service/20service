@@ -11,6 +11,7 @@ Environment=REALM={ $sssd{'Realm'} }
         $OUT = <<'EOF1'
 ExecStart=/usr/bin/samba-tool domain provision \
     "--option=include = /etc/samba/smb.conf.include" \
+    "--option=check password script = /usr/local/sbin/checkpassword.pl" \
     "--domain=${DOMAIN}" "--realm=${REALM}" \
     "--adminpass=${ADMINPASS}" --server-role=dc \
     ; /bin/cp -av /var/lib/samba/private/krb5.conf /etc/krb5.conf
@@ -20,6 +21,7 @@ EOF1
 ExecStart=/usr/bin/samba-tool domain classicupgrade \
     "--option=include = /etc/samba/smb.conf.include" \
     "--option=ntlm auth = yes" \
+    "--option=check password script = /usr/local/sbin/checkpassword.pl" \
     "--realm=${REALM}" \
     --dbdir=/srv /srv/smb.ns6upgrade.conf \
     ; /usr/bin/samba-tool user setpassword administrator "--newpassword=${ADMINPASS}" \
@@ -36,6 +38,7 @@ ExecStartPre=/bin/cp -vf /etc/passwd /etc/passwd.provision \
 ExecStart=/usr/bin/samba-tool domain classicupgrade \
         "--option=include = /etc/samba/smb.conf.include" \
         "--option=ntlm auth = yes" \
+        "--option=check password script = /usr/local/sbin/checkpassword.pl" \
         "--realm=${REALM}" \
         --dbdir=/srv /srv/smb.sme8migration.conf
 
