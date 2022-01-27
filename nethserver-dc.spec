@@ -9,7 +9,7 @@
 %endif
 
 Name:           nethserver-dc
-Version: 1.8.2
+Version: 1.8.3
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -67,6 +67,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Thu Jan 27 2022 Davide Principi <davide.principi@nethesis.it> - 1.8.3-1
+- Password policy is not respected on samba AD clients - Bug NethServer/dev#6613
+
 * Tue Apr 13 2021 Davide Principi <davide.principi@nethesis.it> - 1.8.2-1
 - Windows NTP client time sync failed  - Bug NethServer/dev#6480
 
