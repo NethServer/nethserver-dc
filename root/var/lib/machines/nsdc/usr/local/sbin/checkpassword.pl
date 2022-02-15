@@ -4,7 +4,6 @@
 
 use strict;
 
-my $specialchars='!,@,$,#,%,^,&,*,(,),-,_,+,=';
 my $min_length;
 my $min_uppercase;
 my $min_lowercase;
@@ -58,7 +57,7 @@ foreach my $pass_char (@array_pass)
                 $ctr_digits++;
         }
 	# check special chars
-        elsif($pass_char =~ /[$specialchars]/)
+        elsif($pass_char =~ /[\W_]/)
         {
                 $ctr_specialchar++;
         }
