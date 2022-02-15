@@ -9,7 +9,7 @@
 %endif
 
 Name:           nethserver-dc
-Version: 1.8.3
+Version: 1.8.4
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -67,6 +67,9 @@ mv %{SOURCE1} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue Feb 15 2022 Davide Principi <davide.principi@nethesis.it> - 1.8.4-1
+- Changing password with special chars fails for AD users - Bug NethServer/dev#6637
+
 * Thu Jan 27 2022 Davide Principi <davide.principi@nethesis.it> - 1.8.3-1
 - Password policy is not respected on samba AD clients - Bug NethServer/dev#6613
 
