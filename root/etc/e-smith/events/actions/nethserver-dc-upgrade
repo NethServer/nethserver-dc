@@ -33,7 +33,13 @@ rsync -ai --delete /etc/yum.repos.d/ ${nsroot}/etc/yum.repos.d
 rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
 
 # Upgrade chroot base system & samba package
-yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/compat-*.rpm /usr/lib/nethserver-dc/ns-samba-*.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+{
+    echo 'install' /usr/lib/nethserver-dc/compat-*.rpm
+    echo 'install' /usr/lib/nethserver-dc/gmp-6.1.2-1.el7.x86_64.rpm
+    echo 'update' /usr/lib/nethserver-dc/ns-samba-*.rpm
+    echo 'update *'
+    echo 'run'
+ } | yum -y --releasever=/ --installroot="${nsroot}" shell | /usr/libexec/nethserver/ptrack-nsdc-install
 
 if [[ $? != 0 ]]; then
     echo "[ERROR] Failed to update the nsdc chroot"
