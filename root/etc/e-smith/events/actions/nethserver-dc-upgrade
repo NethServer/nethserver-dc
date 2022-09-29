@@ -35,7 +35,7 @@ rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
 # Upgrade chroot base system & samba package
 {
     echo 'install' /usr/lib/nethserver-dc/compat-*.rpm
-    echo 'install' /usr/lib/nethserver-dc/gmp-6.1.2-1.el7.x86_64.rpm
+    echo 'install' /usr/lib/nethserver-dc/gmp-*.rpm
     echo 'update' /usr/lib/nethserver-dc/ns-samba-*.rpm
     echo 'update *'
     echo 'run'
