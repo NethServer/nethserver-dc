@@ -1,4 +1,4 @@
-#!/usr/bin/python -u
+#!/usr/bin/python3 -u
 
 #
 # Copyright (C) 2018 Nethesis S.r.l.
@@ -33,7 +33,7 @@ import os
 # recvall -- Receive exactly "btr" (bytes-to-read) from socket "so"
 #
 def recvall(so, btr):
-    buf = ''
+    buf = b''
     while btr > 0:
         chunk = so.recv(min(btr, 4096))
         btr -= len(chunk)
@@ -60,7 +60,7 @@ args = json.loads(payload)
 try:
     capture_stderr = None if not args['stderr'] else subprocess.STDOUT
     # Convert unicode strings to plain strings, for execv()
-    encoded_cmd_array = map(lambda x: x.encode('utf-8'), args['cmd'])
+    encoded_cmd_array = list(arg.encode('utf-8') for arg in args['cmd'])
     child = subprocess.Popen(encoded_cmd_array, stdin=None, stdout=subprocess.PIPE, stderr=capture_stderr)
 
     while True:
@@ -78,4 +78,4 @@ except Exception as e:
 #
 # 3. at the end, send the command exit code to the socket client
 #
-so.sendall(chr(child_exit))
+so.sendall(child_exit.to_bytes(1, byteorder='big'))

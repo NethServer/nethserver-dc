@@ -1,1 +1,4 @@
-3263c62210be3250eb75d00b71ac7d0f0d7eb278  ns-samba-4.9.18-1.ns7.x86_64.rpm
+8befb0e1fffe0cfcc0d7f16ba34e43bfd35cfb33  ns-samba-4.16.5-1.ns7.x86_64.rpm
+86bf8e4998d9a9e35b97e98e7e3bd94acce835f8  compat-gnutls37-3.7.2-1.el7.x86_64.rpm
+7b1af67e0741c2ddb32965037a127afa84d52f06  compat-nettle37-3.7.3-1.el7.x86_64.rpm
+5ebb6e7e9258a9c03897149d8189d0e4fa8af32f  gmp-6.1.2-1.el7.x86_64.rpm

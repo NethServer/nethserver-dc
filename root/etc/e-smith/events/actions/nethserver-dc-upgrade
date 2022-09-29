@@ -33,7 +33,14 @@ rsync -ai --delete /etc/yum.repos.d/ ${nsroot}/etc/yum.repos.d
 rsync -ai --delete /etc/yum/vars/ ${nsroot}/etc/yum/vars
 
 # Upgrade chroot base system & samba package
-yum -y --releasever=/ --installroot=${nsroot} update \* /usr/lib/nethserver-dc/ns-samba-*.rpm -y | /usr/libexec/nethserver/ptrack-nsdc-install
+{
+    echo 'install' perl # For checkpassword.pl
+    echo 'install' /usr/lib/nethserver-dc/compat-*.rpm
+    echo 'install' /usr/lib/nethserver-dc/gmp-*.rpm
+    echo 'update' /usr/lib/nethserver-dc/ns-samba-*.rpm
+    echo 'update *'
+    echo 'run'
+ } | yum -y --releasever=/ --installroot="${nsroot}" shell | /usr/libexec/nethserver/ptrack-nsdc-install
 
 if [[ $? != 0 ]]; then
     echo "[ERROR] Failed to update the nsdc chroot"
@@ -44,6 +51,7 @@ fi
 cp -vfp ${nsroot}/var/lib/samba/private/krb5.conf ${nsroot}/etc/krb5.conf
 
 # Restart the Samba DC service in nsdc container
+systemctl -M nsdc daemon-reload
 systemctl -M nsdc restart samba
 
 # Enable and start nsdc-run.socket
