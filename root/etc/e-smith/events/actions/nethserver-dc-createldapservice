@@ -73,8 +73,6 @@ fi
 # userWorkstations (since 4.16.5): allow access from any workstation for apps like Webtop
 /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
 changetype: modify
-replace: userWorkstations
--
 replace: userAccountControl
 userAccountControl: 66048
 "
