@@ -80,6 +80,7 @@ event_actions('post-restore-config', qw(
     nethserver-dc-network-reset 03
     nethserver-dc-post-restore 40
     nethserver-dc-sysvolreset 80
+    nethserver-dc-ldbfixes 80
 ));
 event_templates('post-restore-config', @templates);
 
@@ -173,6 +174,7 @@ event_templates('nethserver-dc-upgrade', @templates);
 event_actions('nethserver-dc-upgrade', qw(
     nethserver-dc-fixinclude 20
     nethserver-dc-upgrade 30
+    nethserver-dc-ldbfixes 80
 ));
 
 # nethserver-dc-change-ip event

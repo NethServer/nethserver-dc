@@ -69,12 +69,10 @@ if [[ -z "\$(get_dn ldapservice)" ]]; then
   || ((++errors))
 fi
 
-# set password never expires and deny access from any workstation:
+# userAccountControl: set password never expires
+# userWorkstations (since 4.16.5): allow access from any workstation for apps like Webtop
 /usr/bin/ldbmodify -v -i -H /var/lib/samba/private/sam.ldb <<<"\$(get_dn ldapservice)
 changetype: modify
-replace: userWorkstations
-userWorkstations: /
--
 replace: userAccountControl
 userAccountControl: 66048
 "
