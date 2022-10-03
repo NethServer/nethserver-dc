@@ -20,8 +20,7 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-nsroot=/var/lib/machines/nsdc
-
+# shellcheck disable=SC1004,SC2016
 nsdc-run -e -- /usr/bin/bash -c '
 function get_dn()
 {
