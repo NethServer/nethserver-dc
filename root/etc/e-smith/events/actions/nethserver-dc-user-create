@@ -47,9 +47,14 @@ if ($FullName eq '') {
 #accept user@domain format
 $userName =~ s/@.*//;
 
-#Create user
-system(qw(nsdc-run -e -- /usr/bin/samba-tool user create), $userName, '--random-password', '--must-change-at-next-login', "--login-shell=$shell", "--unix-home=${homeDirPrefix}${userName}", "--given-name=$FullName", '--use-username-as-cn');
+# Create user
+system(qw(nsdc-run -e -- /usr/bin/samba-tool user create), $userName, '--random-password', '--must-change-at-next-login', "--login-shell=$shell", "--unix-home=${homeDirPrefix}${userName}", '--use-username-as-cn');
 if ($? != 0) {
     die("[ERROR] User $userName creation failed\n");
 }
 
+# Set the full name attribute after creation, to fix #6722
+system(qw(nsdc-run -e -- /usr/bin/pdbedit -u), $userName, "--fullname=$FullName");
+if ($? != 0) {
+    die("[ERROR] Failed to set full name of $userName\n");
+}
