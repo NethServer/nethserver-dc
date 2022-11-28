@@ -9,7 +9,7 @@
 %endif
 
 Name:           nethserver-dc
-Version: 1.9.0
+Version: 1.9.1
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -73,6 +73,9 @@ mv %{SOURCE4} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Mon Nov 28 2022 Davide Principi <davide.principi@nethesis.it> - 1.9.1-1
+- Failed to add an AD user with special char in name - Bug NethServer/dev#6722
+
 * Mon Nov 14 2022 Davide Principi <davide.principi@nethesis.it> - 1.9.0-1
 - Samba 4.16.5 (#112)
 - Cannot login/join AD domain after Windows 11 22H2 update - Bug NethServer/dev#6702
