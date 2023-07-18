@@ -9,7 +9,7 @@
 %endif
 
 Name:           nethserver-dc
-Version: 1.9.1
+Version: 1.9.2
 Release: 1%{?dist}
 Summary:        NethServer Domain Controller configuration
 
@@ -73,6 +73,9 @@ mv %{SOURCE4} root/usr/lib/nethserver-dc
 %config %attr (0440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_dc
 
 %changelog
+* Tue Jul 18 2023 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.9.2-1
+- Samba AD:  Windows 10/11 lost trust relationship - Bug NethServer/dev#6755
+
 * Mon Nov 28 2022 Davide Principi <davide.principi@nethesis.it> - 1.9.1-1
 - Failed to add an AD user with special char in name - Bug NethServer/dev#6722
 
